@@ -1,0 +1,325 @@
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+export interface User {
+  id: string;
+  email: string;
+  username: string;
+  password: string; // In a real app, this would be hashed
+  role: 'user' | 'admin';
+  status: 'active' | 'pending' | 'suspended';
+  createdAt: string;
+  lastLogin?: string;
+  isEmailVerified: boolean;
+}
+
+export interface LoginCredentials {
+  emailOrUsername: string;
+  password: string;
+}
+
+export interface SignupData {
+  email: string;
+  username: string;
+  password: string;
+  confirmPassword: string;
+}
+
+interface AuthStore {
+  // Current user state
+  currentUser: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  
+  // All users (for admin)
+  users: User[];
+  
+  // App settings
+  allowSignups: boolean;
+  requireApproval: boolean;
+  
+  // Authentication methods
+  login: (credentials: LoginCredentials) => Promise<{ success: boolean; message: string }>;
+  logout: () => void;
+  signup: (data: SignupData) => Promise<{ success: boolean; message: string }>;
+  changePassword: (userId: string, currentPassword: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
+  
+  // Admin methods
+  approveUser: (userId: string) => void;
+  suspendUser: (userId: string) => void;
+  activateUser: (userId: string) => void;
+  deleteUser: (userId: string) => void;
+  resetUserPassword: (userId: string, newPassword: string) => void;
+  toggleSignups: () => void;
+  toggleApproval: () => void;
+  
+  // Utility methods
+  getUserById: (userId: string) => User | undefined;
+  isAdmin: () => boolean;
+}
+
+// Create default admin user
+const defaultAdmin: User = {
+  id: 'admin-001',
+  email: 'admin@vivisews.com',
+  username: 'ADMIN',
+  password: 'pineda0322', // In production, this would be hashed
+  role: 'admin',
+  status: 'active',
+  createdAt: new Date().toISOString(),
+  isEmailVerified: true,
+};
+
+// Create some sample users
+const sampleUsers: User[] = [
+  {
+    id: 'user-001',
+    email: 'john@example.com',
+    username: 'john_doe',
+    password: 'password123',
+    role: 'user',
+    status: 'active',
+    createdAt: new Date().toISOString(),
+    isEmailVerified: true,
+  },
+  {
+    id: 'user-002',
+    email: 'jane@example.com',
+    username: 'jane_smith',
+    password: 'password123',
+    role: 'user',
+    status: 'pending',
+    createdAt: new Date().toISOString(),
+    isEmailVerified: false,
+  },
+];
+
+export const useAuthStore = create<AuthStore>()(
+  persist(
+    (set, get) => ({
+      currentUser: null,
+      isAuthenticated: false,
+      isLoading: false,
+      users: [defaultAdmin, ...sampleUsers],
+      allowSignups: true,
+      requireApproval: true,
+      
+      login: async (credentials) => {
+        set({ isLoading: true });
+        
+        try {
+          const { users } = get();
+          const user = users.find(u => 
+            (u.email.toLowerCase() === credentials.emailOrUsername.toLowerCase() || 
+             u.username.toLowerCase() === credentials.emailOrUsername.toLowerCase()) &&
+            u.password === credentials.password
+          );
+          
+          if (!user) {
+            set({ isLoading: false });
+            return { success: false, message: 'Invalid email/username or password' };
+          }
+          
+          if (user.status === 'suspended') {
+            set({ isLoading: false });
+            return { success: false, message: 'Account has been suspended. Please contact admin.' };
+          }
+          
+          if (user.status === 'pending') {
+            set({ isLoading: false });
+            return { success: false, message: 'Account is pending approval. Please wait for admin approval.' };
+          }
+          
+          // Update last login
+          const updatedUsers = users.map(u => 
+            u.id === user.id 
+              ? { ...u, lastLogin: new Date().toISOString() }
+              : u
+          );
+          
+          set({
+            currentUser: { ...user, lastLogin: new Date().toISOString() },
+            isAuthenticated: true,
+            isLoading: false,
+            users: updatedUsers,
+          });
+          
+          return { success: true, message: 'Login successful' };
+        } catch (error) {
+          set({ isLoading: false });
+          return { success: false, message: 'Login failed. Please try again.' };
+        }
+      },
+      
+      logout: () => {
+        set({
+          currentUser: null,
+          isAuthenticated: false,
+        });
+      },
+      
+      signup: async (data) => {
+        const { users, allowSignups, requireApproval } = get();
+        
+        if (!allowSignups) {
+          return { success: false, message: 'Signups are currently disabled' };
+        }
+        
+        // Validate input
+        if (data.password !== data.confirmPassword) {
+          return { success: false, message: 'Passwords do not match' };
+        }
+        
+        if (data.password.length < 6) {
+          return { success: false, message: 'Password must be at least 6 characters long' };
+        }
+        
+        // Check if email or username already exists
+        const existingUser = users.find(u => 
+          u.email.toLowerCase() === data.email.toLowerCase() ||
+          u.username.toLowerCase() === data.username.toLowerCase()
+        );
+        
+        if (existingUser) {
+          return { success: false, message: 'Email or username already exists' };
+        }
+        
+        // Create new user
+        const newUser: User = {
+          id: `user-${Date.now()}`,
+          email: data.email.toLowerCase(),
+          username: data.username,
+          password: data.password, // In production, hash this
+          role: 'user',
+          status: requireApproval ? 'pending' : 'active',
+          createdAt: new Date().toISOString(),
+          isEmailVerified: false,
+        };
+        
+        set({
+          users: [...users, newUser],
+        });
+        
+        const message = requireApproval 
+          ? 'Account created successfully! Please wait for admin approval.'
+          : 'Account created successfully! You can now log in.';
+        
+        return { success: true, message };
+      },
+      
+      changePassword: async (userId, currentPassword, newPassword) => {
+        const { users, currentUser } = get();
+        
+        if (!currentUser) {
+          return { success: false, message: 'Not authenticated' };
+        }
+        
+        // Only allow users to change their own password, or admins to change any password
+        if (currentUser.id !== userId && currentUser.role !== 'admin') {
+          return { success: false, message: 'Unauthorized' };
+        }
+        
+        const user = users.find(u => u.id === userId);
+        if (!user) {
+          return { success: false, message: 'User not found' };
+        }
+        
+        // Verify current password (unless admin)
+        if (currentUser.role !== 'admin' && user.password !== currentPassword) {
+          return { success: false, message: 'Current password is incorrect' };
+        }
+        
+        if (newPassword.length < 6) {
+          return { success: false, message: 'Password must be at least 6 characters long' };
+        }
+        
+        const updatedUsers = users.map(u => 
+          u.id === userId ? { ...u, password: newPassword } : u
+        );
+        
+        set({ users: updatedUsers });
+        
+        // Update current user if they changed their own password
+        if (currentUser.id === userId) {
+          set({ currentUser: { ...currentUser, password: newPassword } });
+        }
+        
+        return { success: true, message: 'Password changed successfully' };
+      },
+      
+      approveUser: (userId) => {
+        const { users } = get();
+        const updatedUsers = users.map(u => 
+          u.id === userId ? { ...u, status: 'active' as const } : u
+        );
+        set({ users: updatedUsers });
+      },
+      
+      suspendUser: (userId) => {
+        const { users } = get();
+        const updatedUsers = users.map(u => 
+          u.id === userId ? { ...u, status: 'suspended' as const } : u
+        );
+        set({ users: updatedUsers });
+      },
+      
+      activateUser: (userId) => {
+        const { users } = get();
+        const updatedUsers = users.map(u => 
+          u.id === userId ? { ...u, status: 'active' as const } : u
+        );
+        set({ users: updatedUsers });
+      },
+      
+      deleteUser: (userId) => {
+        const { users, currentUser } = get();
+        
+        // Prevent admin from deleting themselves
+        if (currentUser?.id === userId) {
+          return;
+        }
+        
+        const updatedUsers = users.filter(u => u.id !== userId);
+        set({ users: updatedUsers });
+      },
+      
+      resetUserPassword: (userId, newPassword) => {
+        const { users } = get();
+        const updatedUsers = users.map(u => 
+          u.id === userId ? { ...u, password: newPassword } : u
+        );
+        set({ users: updatedUsers });
+      },
+      
+      toggleSignups: () => {
+        const { allowSignups } = get();
+        set({ allowSignups: !allowSignups });
+      },
+      
+      toggleApproval: () => {
+        const { requireApproval } = get();
+        set({ requireApproval: !requireApproval });
+      },
+      
+      getUserById: (userId) => {
+        const { users } = get();
+        return users.find(u => u.id === userId);
+      },
+      
+      isAdmin: () => {
+        const { currentUser } = get();
+        return currentUser?.role === 'admin';
+      },
+    }),
+    {
+      name: 'auth-store',
+      partialize: (state) => ({
+        currentUser: state.currentUser,
+        isAuthenticated: state.isAuthenticated,
+        users: state.users,
+        allowSignups: state.allowSignups,
+        requireApproval: state.requireApproval,
+      }),
+    }
+  )
+);
