@@ -7,10 +7,6 @@ import {
   UserCheck, 
   UserX, 
   UserPlus, 
-  Trash2, 
-  Edit, 
-  Eye, 
-  EyeOff,
   LogOut,
   Moon,
   Sun

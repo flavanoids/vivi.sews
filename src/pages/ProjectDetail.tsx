@@ -324,6 +324,7 @@ export default function ProjectDetail() {
       <DeleteConfirmDialog
         fabric={null}
         project={project}
+        pattern={null}
         isOpen={deleteDialogOpen}
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteDialogOpen(false)}

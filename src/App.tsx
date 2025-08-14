@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from './store/authStore';
 import { useFabricStore } from './store/fabricStore';
+import { LanguageProvider } from './contexts/LanguageContext';
 import Dashboard from './pages/Dashboard';
 import AddFabric from './pages/AddFabric';
 import EditFabric from './pages/EditFabric';
@@ -9,6 +10,10 @@ import Projects from './pages/Projects';
 import AddProject from './pages/AddProject';
 import ProjectDetail from './pages/ProjectDetail';
 import EditProject from './pages/EditProject';
+import Patterns from './pages/Patterns';
+import AddPattern from './pages/AddPattern';
+import PatternDetail from './pages/PatternDetail';
+import EditPattern from './pages/EditPattern';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import AdminDashboard from './pages/AdminDashboard';
@@ -18,7 +23,7 @@ const queryClient = new QueryClient();
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, currentUser } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -44,75 +49,97 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   const { isAuthenticated } = useAuthStore();
-  const { isDarkMode, toggleDarkMode } = useFabricStore();
+  const { isDarkMode } = useFabricStore();
   
   return (
     <div className={isDarkMode ? 'dark' : ''}>
-      <QueryClientProvider client={queryClient}>
-        <Router>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/login" element={
-              isAuthenticated ? <Navigate to="/" replace /> : <Login />
-            } />
-            <Route path="/signup" element={
-              isAuthenticated ? <Navigate to="/" replace /> : <Signup />
-            } />
-            
-            {/* Protected Routes */}
-            <Route path="/" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/add" element={
-              <ProtectedRoute>
-                <AddFabric />
-              </ProtectedRoute>
-            } />
-            <Route path="/edit/:id" element={
-              <ProtectedRoute>
-                <EditFabric />
-              </ProtectedRoute>
-            } />
-            <Route path="/projects" element={
-              <ProtectedRoute>
-                <Projects />
-              </ProtectedRoute>
-            } />
-            <Route path="/projects/add" element={
-              <ProtectedRoute>
-                <AddProject />
-              </ProtectedRoute>
-            } />
-            <Route path="/projects/:id" element={
-              <ProtectedRoute>
-                <ProjectDetail />
-              </ProtectedRoute>
-            } />
-            <Route path="/projects/edit/:id" element={
-              <ProtectedRoute>
-                <EditProject />
-              </ProtectedRoute>
-            } />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <UserProfile />
-              </ProtectedRoute>
-            } />
-            
-            {/* Admin Routes */}
-            <Route path="/admin" element={
-              <AdminRoute>
-                <AdminDashboard />
-              </AdminRoute>
-            } />
-            
-            {/* Catch all route */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Router>
-      </QueryClientProvider>
+      <LanguageProvider>
+        <QueryClientProvider client={queryClient}>
+          <Router>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/login" element={
+                isAuthenticated ? <Navigate to="/" replace /> : <Login />
+              } />
+              <Route path="/signup" element={
+                isAuthenticated ? <Navigate to="/" replace /> : <Signup />
+              } />
+              
+              {/* Protected Routes */}
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/add" element={
+                <ProtectedRoute>
+                  <AddFabric />
+                </ProtectedRoute>
+              } />
+              <Route path="/edit/:id" element={
+                <ProtectedRoute>
+                  <EditFabric />
+                </ProtectedRoute>
+              } />
+              <Route path="/projects" element={
+                <ProtectedRoute>
+                  <Projects />
+                </ProtectedRoute>
+              } />
+              <Route path="/projects/add" element={
+                <ProtectedRoute>
+                  <AddProject />
+                </ProtectedRoute>
+              } />
+              <Route path="/projects/:id" element={
+                <ProtectedRoute>
+                  <ProjectDetail />
+                </ProtectedRoute>
+              } />
+              <Route path="/projects/edit/:id" element={
+                <ProtectedRoute>
+                  <EditProject />
+                </ProtectedRoute>
+              } />
+              <Route path="/patterns" element={
+                <ProtectedRoute>
+                  <Patterns />
+                </ProtectedRoute>
+              } />
+              <Route path="/patterns/add" element={
+                <ProtectedRoute>
+                  <AddPattern />
+                </ProtectedRoute>
+              } />
+              <Route path="/patterns/:id" element={
+                <ProtectedRoute>
+                  <PatternDetail />
+                </ProtectedRoute>
+              } />
+              <Route path="/patterns/edit/:id" element={
+                <ProtectedRoute>
+                  <EditPattern />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <UserProfile />
+                </ProtectedRoute>
+              } />
+              
+              {/* Admin Routes */}
+              <Route path="/admin" element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              } />
+              
+              {/* Catch all route */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Router>
+        </QueryClientProvider>
+      </LanguageProvider>
     </div>
   );
 }

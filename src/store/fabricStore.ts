@@ -54,9 +54,31 @@ export interface Project {
   userId: string;
 }
 
+export interface Pattern {
+  id: string;
+  name: string;
+  description?: string;
+  designer: string;
+  patternNumber?: string;
+  category: 'dresses' | 'tops' | 'bottoms' | 'outerwear' | 'accessories' | 'home-decor' | 'bags';
+  difficulty: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  sizeRange: string;
+  fabricRequirements?: string;
+  notions?: string;
+  instructions?: string;
+  pdfUrl?: string;
+  thumbnailUrl?: string;
+  isPinned: boolean;
+  createdAt: string;
+  updatedAt: string;
+  notes?: string;
+  userId: string;
+}
+
 interface FabricStore {
   fabrics: FabricEntry[];
   projects: Project[];
+  patterns: Pattern[];
   usageHistory: UsageEntry[];
   isDarkMode: boolean;
   
@@ -75,6 +97,12 @@ interface FabricStore {
   removeMaterialFromProject: (projectId: string, materialId: string) => void;
   updateProjectMaterial: (projectId: string, materialId: string, updates: Partial<ProjectMaterial>) => void;
   
+  // Pattern methods
+  addPattern: (pattern: Omit<Pattern, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => void;
+  updatePattern: (id: string, updates: Partial<Pattern>) => void;
+  deletePattern: (id: string) => void;
+  togglePatternPin: (id: string) => void;
+  
   // UI state
   toggleDarkMode: () => void;
   searchTerm: string;
@@ -85,10 +113,15 @@ interface FabricStore {
   setProjectSearchTerm: (term: string) => void;
   projectFilterStatus: string;
   setProjectFilterStatus: (status: string) => void;
+  patternSearchTerm: string;
+  setPatternSearchTerm: (term: string) => void;
+  patternFilterCategory: string;
+  setPatternFilterCategory: (category: string) => void;
   
   // User-specific data
   getUserFabrics: (userId: string) => FabricEntry[];
   getUserProjects: (userId: string) => Project[];
+  getUserPatterns: (userId: string) => Pattern[];
   getUserUsageHistory: (userId: string) => UsageEntry[];
 }
 
@@ -180,17 +213,55 @@ const initialProjects: Project[] = [
   }
 ];
 
+const initialPatterns: Pattern[] = [
+  {
+    id: '1',
+    name: 'Classic A-Line Dress',
+    description: 'A timeless A-line dress pattern perfect for beginners',
+    designer: 'Simplicity',
+    patternNumber: 'S1234',
+    category: 'dresses',
+    difficulty: 'beginner',
+    sizeRange: 'XS-XXL (6-20)',
+    fabricRequirements: '2-3 yards of medium weight fabric',
+    notions: 'Zipper, thread, interfacing',
+    isPinned: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    userId: 'user-001',
+  },
+  {
+    id: '2',
+    name: 'Relaxed Fit Blouse',
+    description: 'A comfortable blouse with a relaxed fit',
+    designer: 'McCalls',
+    patternNumber: 'M5678',
+    category: 'tops',
+    difficulty: 'intermediate',
+    sizeRange: 'S-XL (8-16)',
+    fabricRequirements: '1.5-2 yards of lightweight fabric',
+    notions: 'Buttons, thread, interfacing',
+    isPinned: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    userId: 'user-001',
+  }
+];
+
 export const useFabricStore = create<FabricStore>()(
   persist(
     (set, get) => ({
       fabrics: initialFabrics,
       projects: initialProjects,
+      patterns: initialPatterns,
       usageHistory: [],
       isDarkMode: false,
       searchTerm: '',
       filterType: '',
       projectSearchTerm: '',
       projectFilterStatus: '',
+      patternSearchTerm: '',
+      patternFilterCategory: '',
       
       // Fabric methods
       addFabric: (fabricData) => {
@@ -376,12 +447,68 @@ export const useFabricStore = create<FabricStore>()(
         }));
       },
       
+      // Pattern methods
+      addPattern: (patternData) => {
+        const currentUser = useAuthStore.getState().currentUser;
+        if (!currentUser) return;
+        
+        const newPattern: Pattern = {
+          ...patternData,
+          id: Date.now().toString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          userId: currentUser.id,
+        };
+        set((state) => ({
+          patterns: [...state.patterns, newPattern]
+        }));
+      },
+      
+      updatePattern: (id, updates) => {
+        const currentUser = useAuthStore.getState().currentUser;
+        if (!currentUser) return;
+        
+        set((state) => ({
+          patterns: state.patterns.map((pattern) =>
+            pattern.id === id && pattern.userId === currentUser.id
+              ? { ...pattern, ...updates, updatedAt: new Date().toISOString() }
+              : pattern
+          )
+        }));
+      },
+      
+      deletePattern: (id) => {
+        const currentUser = useAuthStore.getState().currentUser;
+        if (!currentUser) return;
+        
+        set((state) => ({
+          patterns: state.patterns.filter((pattern) => 
+            pattern.id !== id || pattern.userId !== currentUser.id
+          )
+        }));
+      },
+      
+      togglePatternPin: (id) => {
+        const currentUser = useAuthStore.getState().currentUser;
+        if (!currentUser) return;
+        
+        set((state) => ({
+          patterns: state.patterns.map((pattern) =>
+            pattern.id === id && pattern.userId === currentUser.id
+              ? { ...pattern, isPinned: !pattern.isPinned, updatedAt: new Date().toISOString() }
+              : pattern
+          )
+        }));
+      },
+      
       // UI state methods
       toggleDarkMode: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
       setSearchTerm: (term) => set({ searchTerm: term }),
       setFilterType: (type) => set({ filterType: type }),
       setProjectSearchTerm: (term) => set({ projectSearchTerm: term }),
       setProjectFilterStatus: (status) => set({ projectFilterStatus: status }),
+      setPatternSearchTerm: (term) => set({ patternSearchTerm: term }),
+      setPatternFilterCategory: (category) => set({ patternFilterCategory: category }),
       
       // User-specific data methods
       getUserFabrics: (userId) => {
@@ -397,6 +524,11 @@ export const useFabricStore = create<FabricStore>()(
       getUserUsageHistory: (userId) => {
         const { usageHistory } = get();
         return usageHistory.filter(usage => usage.userId === userId);
+      },
+      
+      getUserPatterns: (userId) => {
+        const { patterns } = get();
+        return patterns.filter(pattern => pattern.userId === userId);
       },
     }),
     {

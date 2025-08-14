@@ -1,71 +1,79 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Plus, Calendar, Clock, Moon, Sun, Filter } from 'lucide-react';
-import { useFabricStore, type Project } from '../store/fabricStore';
+import { Search, Plus, Calendar, Moon, Sun, Filter, FileText } from 'lucide-react';
+import { useFabricStore, type Pattern } from '../store/fabricStore';
 import { useAuthStore } from '../store/authStore';
 import DeleteConfirmDialog from '../components/DeleteConfirmDialog';
 
-export default function Projects() {
+export default function Patterns() {
   const navigate = useNavigate();
   const { currentUser } = useAuthStore();
   const { 
-    getUserProjects,
-    projectSearchTerm, 
-    setProjectSearchTerm,
-    projectFilterStatus,
-    setProjectFilterStatus,
-    deleteProject,
+    getUserPatterns,
+    patternSearchTerm, 
+    setPatternSearchTerm,
+    patternFilterCategory,
+    setPatternFilterCategory,
+    deletePattern,
     isDarkMode,
     toggleDarkMode
   } = useFabricStore();
-  const [deleteDialogProject, setDeleteDialogProject] = useState<Project | null>(null);
+  const [deleteDialogPattern, setDeleteDialogPattern] = useState<Pattern | null>(null);
 
-  // Get user-specific projects
-  const userProjects = currentUser ? getUserProjects(currentUser.id) : [];
+  // Get user-specific patterns
+  const userPatterns = currentUser ? getUserPatterns(currentUser.id) : [];
 
-  const filteredProjects = userProjects.filter(project => {
+  const filteredPatterns = userPatterns.filter(pattern => {
     const matchesSearch = 
-      project.name.toLowerCase().includes(projectSearchTerm.toLowerCase()) ||
-      (project.description && project.description.toLowerCase().includes(projectSearchTerm.toLowerCase()));
+      pattern.name.toLowerCase().includes(patternSearchTerm.toLowerCase()) ||
+      (pattern.description && pattern.description.toLowerCase().includes(patternSearchTerm.toLowerCase())) ||
+      pattern.designer.toLowerCase().includes(patternSearchTerm.toLowerCase()) ||
+      pattern.category.toLowerCase().includes(patternSearchTerm.toLowerCase());
     
-    const matchesFilter = !projectFilterStatus || project.status === projectFilterStatus;
+    const matchesFilter = !patternFilterCategory || pattern.category === patternFilterCategory;
     
     return matchesSearch && matchesFilter;
   });
 
-  const getStatusColor = (status: Project['status']) => {
-    switch (status) {
-      case 'planning': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-      case 'in-progress': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
-      case 'completed': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-      case 'on-hold': return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
+  const getCategoryColor = (category: Pattern['category']) => {
+    switch (category) {
+      case 'dresses': return 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300';
+      case 'tops': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+      case 'bottoms': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+      case 'outerwear': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
+      case 'accessories': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
+      case 'home-decor': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
+      case 'bags': return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
     }
   };
 
-  const getStatusIcon = (status: Project['status']) => {
-    switch (status) {
-      case 'planning': return '📋';
-      case 'in-progress': return '🔄';
-      case 'completed': return '✅';
-      case 'on-hold': return '⏸️';
+  const getCategoryIcon = (category: Pattern['category']) => {
+    switch (category) {
+      case 'dresses': return '👗';
+      case 'tops': return '👚';
+      case 'bottoms': return '👖';
+      case 'outerwear': return '🧥';
+      case 'accessories': return '👜';
+      case 'home-decor': return '🏠';
+      case 'bags': return '👜';
       default: return '📋';
     }
   };
 
   const handleDeleteConfirm = () => {
-    if (deleteDialogProject) {
-      deleteProject(deleteDialogProject.id);
-      setDeleteDialogProject(null);
+    if (deleteDialogPattern) {
+      deletePattern(deleteDialogPattern.id);
+      setDeleteDialogPattern(null);
     }
   };
 
-  const handleEdit = (project: Project) => {
-    navigate(`/projects/edit/${project.id}`);
+  const handleEdit = (pattern: Pattern) => {
+    navigate(`/patterns/edit/${pattern.id}`);
   };
 
-  const handleView = (project: Project) => {
-    navigate(`/projects/${project.id}`);
+  const handleView = (pattern: Pattern) => {
+    navigate(`/patterns/${pattern.id}`);
   };
 
   return (
@@ -81,7 +89,7 @@ export default function Projects() {
                 >
                   ← Back to Fabrics
                 </Link>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">My Projects</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">My Patterns</h1>
               </div>
               <div className="flex items-center gap-3">
                 <button
@@ -92,11 +100,11 @@ export default function Projects() {
                   {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                 </button>
                 <Link 
-                  to="/projects/add"
+                  to="/patterns/add"
                   className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-colors"
                 >
                   <Plus className="w-5 h-5" />
-                  New Project
+                  New Pattern
                 </Link>
               </div>
             </div>
@@ -106,9 +114,9 @@ export default function Projects() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
-                  placeholder="Search projects..."
-                  value={projectSearchTerm}
-                  onChange={(e) => setProjectSearchTerm(e.target.value)}
+                  placeholder="Search patterns by name, designer, or category..."
+                  value={patternSearchTerm}
+                  onChange={(e) => setPatternSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
               </div>
@@ -116,53 +124,56 @@ export default function Projects() {
               <div className="flex gap-2">
                 <Filter className="w-5 h-5 text-gray-400 mt-3" />
                 <select
-                  value={projectFilterStatus}
-                  onChange={(e) => setProjectFilterStatus(e.target.value)}
+                  value={patternFilterCategory}
+                  onChange={(e) => setPatternFilterCategory(e.target.value)}
                   className="flex-1 px-3 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
-                  <option value="">All Status</option>
-                  <option value="planning">Planning</option>
-                  <option value="in-progress">In Progress</option>
-                  <option value="completed">Completed</option>
-                  <option value="on-hold">On Hold</option>
+                  <option value="">All Categories</option>
+                  <option value="dresses">Dresses</option>
+                  <option value="tops">Tops</option>
+                  <option value="bottoms">Bottoms</option>
+                  <option value="outerwear">Outerwear</option>
+                  <option value="accessories">Accessories</option>
+                  <option value="home-decor">Home Decor</option>
+                  <option value="bags">Bags</option>
                 </select>
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-            {filteredProjects.map((project) => (
-              <ProjectCard 
-                key={project.id} 
-                project={project} 
-                onView={() => handleView(project)}
-                onEdit={() => handleEdit(project)}
-                onDelete={() => setDeleteDialogProject(project)}
-                getStatusColor={getStatusColor}
-                getStatusIcon={getStatusIcon}
+            {filteredPatterns.map((pattern) => (
+              <PatternCard 
+                key={pattern.id} 
+                pattern={pattern} 
+                onView={() => handleView(pattern)}
+                onEdit={() => handleEdit(pattern)}
+                onDelete={() => setDeleteDialogPattern(pattern)}
+                getCategoryColor={getCategoryColor}
+                getCategoryIcon={getCategoryIcon}
               />
             ))}
           </div>
 
-          {filteredProjects.length === 0 && (
+          {filteredPatterns.length === 0 && (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">📋</div>
               <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                {projectSearchTerm || projectFilterStatus ? 'No projects found' : 'No projects yet'}
+                {patternSearchTerm || patternFilterCategory ? 'No patterns found' : 'No patterns yet'}
               </h3>
               <p className="text-gray-500 dark:text-gray-400 mb-6">
-                {projectSearchTerm || projectFilterStatus 
+                {patternSearchTerm || patternFilterCategory 
                   ? 'Try adjusting your search or filter criteria'
-                  : 'Start by creating your first sewing project!'
+                  : 'Start by uploading your first sewing pattern!'
                 }
               </p>
-              {!projectSearchTerm && !projectFilterStatus && (
+              {!patternSearchTerm && !patternFilterCategory && (
                 <Link 
-                  to="/projects/add"
+                  to="/patterns/add"
                   className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg inline-flex items-center gap-2 transition-colors"
                 >
                   <Plus className="w-5 h-5" />
-                  Create Your First Project
+                  Upload Your First Pattern
                 </Link>
               )}
             </div>
@@ -170,11 +181,11 @@ export default function Projects() {
           
           <DeleteConfirmDialog
             fabric={null}
-            project={deleteDialogProject}
-            pattern={null}
-            isOpen={!!deleteDialogProject}
+            project={null}
+            pattern={deleteDialogPattern}
+            isOpen={!!deleteDialogPattern}
             onConfirm={handleDeleteConfirm}
-            onCancel={() => setDeleteDialogProject(null)}
+            onCancel={() => setDeleteDialogPattern(null)}
           />
         </div>
       </div>
@@ -182,62 +193,60 @@ export default function Projects() {
   );
 }
 
-interface ProjectCardProps {
-  project: Project;
+interface PatternCardProps {
+  pattern: Pattern;
   onView: () => void;
   onEdit: () => void;
   onDelete: () => void;
-  getStatusColor: (status: Project['status']) => string;
-  getStatusIcon: (status: Project['status']) => string;
+  getCategoryColor: (category: Pattern['category']) => string;
+  getCategoryIcon: (category: Pattern['category']) => string;
 }
 
-function ProjectCard({ project, onView, onEdit, getStatusColor, getStatusIcon }: ProjectCardProps) {
-  const totalMaterials = project.materials.length;
-  const totalYards = project.materials.reduce((sum, material) => sum + material.yardsUsed, 0);
-  
+function PatternCard({ pattern, onView, onEdit, getCategoryColor, getCategoryIcon }: PatternCardProps) {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow">
       <div className="aspect-square bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 relative">
-        {project.imageUrl ? (
-          <img src={project.imageUrl} alt={project.name} className="w-full h-full object-cover" />
+        {pattern.thumbnailUrl ? (
+          <img src={pattern.thumbnailUrl} alt={pattern.name} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <div className="text-center text-gray-400">
-              <div className="text-4xl mb-2">🧵</div>
-              <div className="text-sm">No image</div>
+              <div className="text-4xl mb-2">📄</div>
+              <div className="text-sm">No thumbnail</div>
             </div>
           </div>
         )}
         <div className="absolute top-3 right-3">
-          <div className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
-            {getStatusIcon(project.status)} {project.status.replace('-', ' ')}
+          <div className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(pattern.category)}`}>
+            {getCategoryIcon(pattern.category)} {pattern.category.replace('-', ' ')}
           </div>
         </div>
         <div className="absolute bottom-3 left-3 right-3">
           <div className="bg-white/90 dark:bg-gray-800/90 rounded-lg p-2">
             <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
-              <span>{totalMaterials} materials</span>
-              <span>{totalYards.toFixed(1)} yards</span>
+              <span>{pattern.difficulty}</span>
+              <span>{pattern.sizeRange}</span>
             </div>
           </div>
         </div>
       </div>
       
       <div className="p-4">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-1 line-clamp-1">{project.name}</h3>
-        {project.description && (
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">{project.description}</p>
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-1 line-clamp-1">{pattern.name}</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-1">by {pattern.designer}</p>
+        {pattern.description && (
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">{pattern.description}</p>
         )}
         
         <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mb-3">
           <div className="flex items-center gap-1">
             <Calendar className="w-3 h-3" />
-            <span>{new Date(project.createdAt).toLocaleDateString()}</span>
+            <span>{new Date(pattern.createdAt).toLocaleDateString()}</span>
           </div>
-          {project.targetDate && (
+          {pattern.patternNumber && (
             <div className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              <span>{new Date(project.targetDate).toLocaleDateString()}</span>
+              <FileText className="w-3 h-3" />
+              <span>{pattern.patternNumber}</span>
             </div>
           )}
         </div>

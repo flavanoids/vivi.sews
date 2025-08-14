@@ -1,16 +1,19 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Plus, Heart, Scissors, Moon, Sun, FolderOpen, User, Shield, LogOut } from 'lucide-react';
+import { Search, Plus, Heart, Scissors, Moon, Sun, FolderOpen, User, Shield, LogOut, FileText } from 'lucide-react';
 import { useFabricStore, type FabricEntry } from '../store/fabricStore';
 import { useAuthStore } from '../store/authStore';
+import { useLanguage } from '../contexts/LanguageContext';
 import UsageDialog from '../components/UsageDialog';
 import FabricCardMenu from '../components/FabricCardMenu';
 import DeleteConfirmDialog from '../components/DeleteConfirmDialog';
+import LanguageSelector from '../components/LanguageSelector';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { currentUser, logout } = useAuthStore();
   const { isDarkMode, toggleDarkMode } = useFabricStore();
+  const { t } = useLanguage();
   const { 
     getUserFabrics,
     searchTerm, 
@@ -74,10 +77,10 @@ export default function Dashboard() {
           
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4 sm:mb-6">
             <div className="flex items-center gap-4">
-              <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white">My Fabrics</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white">{t('dashboard.title')}</h2>
               {currentUser && (
                 <span className="text-sm text-gray-600 dark:text-gray-400">
-                  Welcome, {currentUser.username}!
+                  {t('dashboard.welcome')}, {currentUser.username}!
                 </span>
               )}
             </div>
@@ -116,8 +119,12 @@ export default function Dashboard() {
                       onClick={() => setShowUserMenu(false)}
                     >
                       <User className="w-4 h-4" />
-                      Profile
+                      {t('navigation.profile')}
                     </Link>
+                    
+                    <div className="px-4 py-2">
+                      <LanguageSelector />
+                    </div>
                     
                     {currentUser?.role === 'admin' && (
                       <Link
@@ -126,7 +133,7 @@ export default function Dashboard() {
                         onClick={() => setShowUserMenu(false)}
                       >
                         <Shield className="w-4 h-4" />
-                        Admin Dashboard
+                        {t('navigation.admin')}
                       </Link>
                     )}
                     
@@ -138,7 +145,7 @@ export default function Dashboard() {
                       className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors w-full text-left"
                     >
                       <LogOut className="w-4 h-4" />
-                      Logout
+                      {t('navigation.logout')}
                     </button>
                   </div>
                 )}
@@ -149,14 +156,21 @@ export default function Dashboard() {
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm"
               >
                 <FolderOpen className="w-4 h-4" />
-                Projects
+                {t('navigation.projects')}
+              </Link>
+              <Link 
+                to="/patterns"
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm"
+              >
+                <FileText className="w-4 h-4" />
+                Patterns
               </Link>
               <Link 
                 to="/add"
                 className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-colors"
               >
                 <Plus className="w-5 h-5" />
-                Add Fabric
+                {t('fabrics.addFabric')}
               </Link>
             </div>
           </div>
@@ -165,7 +179,7 @@ export default function Dashboard() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
-              placeholder="Search fabrics by name, type, or color..."
+              placeholder={t('dashboard.searchFabrics')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -178,15 +192,15 @@ export default function Dashboard() {
               onChange={(e) => setFilterType(e.target.value)}
               className="flex-shrink-0 px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             >
-              <option value="">All Types</option>
-              <option value="Cotton">Cotton</option>
-              <option value="Linen">Linen</option>
-              <option value="Silk">Silk</option>
-              <option value="Wool">Wool</option>
-              <option value="Polyester">Polyester</option>
-              <option value="Denim">Denim</option>
-              <option value="Fleece">Fleece</option>
-              <option value="Knit">Knit</option>
+              <option value="">{t('dashboard.allTypes')}</option>
+              <option value="Cotton">{t('fabrics.fabricTypes.cotton')}</option>
+              <option value="Linen">{t('fabrics.fabricTypes.linen')}</option>
+              <option value="Silk">{t('fabrics.fabricTypes.silk')}</option>
+              <option value="Wool">{t('fabrics.fabricTypes.wool')}</option>
+              <option value="Polyester">{t('fabrics.fabricTypes.polyester')}</option>
+              <option value="Denim">{t('fabrics.fabricTypes.denim')}</option>
+              <option value="Fleece">{t('fabrics.fabricTypes.fleece')}</option>
+              <option value="Knit">{t('fabrics.fabricTypes.knit')}</option>
             </select>
           </div>
         </div>
@@ -195,7 +209,7 @@ export default function Dashboard() {
           <div className="mb-6 sm:mb-8">
             <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
               <Heart className="w-5 h-5 text-red-500" />
-              Pinned Fabrics
+              {t('dashboard.pinnedFabrics')}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {pinnedFabrics.map((fabric) => (
@@ -214,7 +228,7 @@ export default function Dashboard() {
 
         <div>
           <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
-            All Fabrics ({otherFabrics.length})
+            {t('dashboard.allFabrics')} ({otherFabrics.length})
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {otherFabrics.map((fabric) => (
@@ -239,6 +253,7 @@ export default function Dashboard() {
         <DeleteConfirmDialog
           fabric={deleteDialogFabric}
           project={null}
+          pattern={null}
           isOpen={!!deleteDialogFabric}
           onConfirm={handleDeleteConfirm}
           onCancel={() => setDeleteDialogFabric(null)}
@@ -267,10 +282,10 @@ function FabricCard({ fabric, onTogglePin, onUseFabric, onEdit, onDelete }: Fabr
           <img src={fabric.imageUrl} alt={fabric.name} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <div className="text-center text-gray-400">
-              <div className="text-4xl mb-2">🧵</div>
-              <div className="text-sm">No image</div>
-            </div>
+                      <div className="text-center text-gray-400">
+            <div className="text-4xl mb-2">🧵</div>
+            <div className="text-sm">No image</div>
+          </div>
           </div>
         )}
         <div className="absolute top-3 right-3 flex gap-2">

@@ -1,18 +1,20 @@
 import { AlertTriangle } from 'lucide-react';
-import { type FabricEntry, type Project } from '../store/fabricStore';
+import { type FabricEntry, type Project, type Pattern } from '../store/fabricStore';
 
 interface DeleteConfirmDialogProps {
   fabric: FabricEntry | null;
   project: Project | null;
+  pattern: Pattern | null;
   isOpen: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
 
-export default function DeleteConfirmDialog({ fabric, project, isOpen, onConfirm, onCancel }: DeleteConfirmDialogProps) {
-  if (!isOpen || (!fabric && !project)) return null;
+export default function DeleteConfirmDialog({ fabric, project, pattern, isOpen, onConfirm, onCancel }: DeleteConfirmDialogProps) {
+  if (!isOpen || (!fabric && !project && !pattern)) return null;
 
   const isProject = !!project;
+  const isPattern = !!pattern;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -23,7 +25,7 @@ export default function DeleteConfirmDialog({ fabric, project, isOpen, onConfirm
           </div>
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Delete {isProject ? 'Project' : 'Fabric'}
+              Delete {isProject ? 'Project' : isPattern ? 'Pattern' : 'Fabric'}
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">This action cannot be undone</p>
           </div>
@@ -38,6 +40,17 @@ export default function DeleteConfirmDialog({ fabric, project, isOpen, onConfirm
               )}
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 {project.materials.length} materials • {project.status}
+              </p>
+            </>
+          ) : isPattern && pattern ? (
+            <>
+              <h4 className="font-medium text-gray-900 dark:text-white">{pattern.name}</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">by {pattern.designer}</p>
+              {pattern.description && (
+                <p className="text-sm text-gray-600 dark:text-gray-400">{pattern.description}</p>
+              )}
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {pattern.category} • {pattern.difficulty}
               </p>
             </>
           ) : fabric ? (
@@ -60,7 +73,7 @@ export default function DeleteConfirmDialog({ fabric, project, isOpen, onConfirm
             onClick={onConfirm}
             className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
           >
-            Delete {isProject ? 'Project' : 'Fabric'}
+            Delete {isProject ? 'Project' : isPattern ? 'Pattern' : 'Fabric'}
           </button>
         </div>
       </div>

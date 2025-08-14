@@ -8,6 +8,7 @@ export interface User {
   password: string; // In a real app, this would be hashed
   role: 'user' | 'admin';
   status: 'active' | 'pending' | 'suspended';
+  language: 'en' | 'es';
   createdAt: string;
   lastLogin?: string;
   isEmailVerified: boolean;
@@ -53,6 +54,9 @@ interface AuthStore {
   toggleSignups: () => void;
   toggleApproval: () => void;
   
+  // User preferences
+  updateUserLanguage: (userId: string, language: 'en' | 'es') => void;
+  
   // Utility methods
   getUserById: (userId: string) => User | undefined;
   isAdmin: () => boolean;
@@ -66,6 +70,7 @@ const defaultAdmin: User = {
   password: 'pineda0322', // In production, this would be hashed
   role: 'admin',
   status: 'active',
+  language: 'en',
   createdAt: new Date().toISOString(),
   isEmailVerified: true,
 };
@@ -79,6 +84,7 @@ const sampleUsers: User[] = [
     password: 'password123',
     role: 'user',
     status: 'active',
+    language: 'en',
     createdAt: new Date().toISOString(),
     isEmailVerified: true,
   },
@@ -89,6 +95,7 @@ const sampleUsers: User[] = [
     password: 'password123',
     role: 'user',
     status: 'pending',
+    language: 'es',
     createdAt: new Date().toISOString(),
     isEmailVerified: false,
   },
@@ -192,6 +199,7 @@ export const useAuthStore = create<AuthStore>()(
           password: data.password, // In production, hash this
           role: 'user',
           status: requireApproval ? 'pending' : 'active',
+          language: 'en', // Default to English
           createdAt: new Date().toISOString(),
           isEmailVerified: false,
         };
@@ -299,6 +307,22 @@ export const useAuthStore = create<AuthStore>()(
       toggleApproval: () => {
         const { requireApproval } = get();
         set({ requireApproval: !requireApproval });
+      },
+      
+      updateUserLanguage: (userId, language) => {
+        const { users, currentUser } = get();
+        
+        // Update the user's language preference
+        const updatedUsers = users.map(u => 
+          u.id === userId ? { ...u, language } : u
+        );
+        
+        set({ users: updatedUsers });
+        
+        // Update current user if they changed their own language
+        if (currentUser && currentUser.id === userId) {
+          set({ currentUser: { ...currentUser, language } });
+        }
       },
       
       getUserById: (userId) => {
