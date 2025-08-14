@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Edit, Trash2, Plus, Calendar, FileText, Scissors } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Plus, Calendar, FileText, Scissors, BookOpen } from 'lucide-react';
 import { useFabricStore, type Project } from '../store/fabricStore';
 import DeleteConfirmDialog from '../components/DeleteConfirmDialog';
 
@@ -13,6 +13,7 @@ export default function ProjectDetail() {
     usageHistory, 
     deleteProject, 
     removeMaterialFromProject,
+    removePatternFromProject,
     isDarkMode 
   } = useFabricStore();
   
@@ -69,6 +70,7 @@ export default function ProjectDetail() {
 
   const totalYardsUsed = project.materials.reduce((sum, material) => sum + material.yardsUsed, 0);
   const totalMaterials = project.materials.length;
+  const totalPatterns = project.patterns.length;
 
   const handleDeleteConfirm = () => {
     deleteProject(project.id);
@@ -78,6 +80,12 @@ export default function ProjectDetail() {
   const handleRemoveMaterial = (materialId: string) => {
     removeMaterialFromProject(project.id, materialId);
   };
+
+  const handleRemovePattern = (patternId: string) => {
+    removePatternFromProject(project.id, patternId);
+  };
+
+
 
   return (
     <div className={`min-h-screen transition-colors ${isDarkMode ? 'dark bg-gradient-to-br from-gray-900 to-gray-800' : 'bg-gradient-to-br from-blue-50 to-indigo-100'}`}>
@@ -150,19 +158,15 @@ export default function ProjectDetail() {
                       <div className="text-sm text-gray-600 dark:text-gray-400">Total Yards</div>
                     </div>
                     <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{totalPatterns}</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Patterns</div>
+                    </div>
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                         {new Date(project.createdAt).toLocaleDateString()}
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">Created</div>
                     </div>
-                    {project.targetDate && (
-                      <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
-                        <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                          {new Date(project.targetDate).toLocaleDateString()}
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Target Date</div>
-                      </div>
-                    )}
                   </div>
 
                   {/* Materials */}
@@ -213,6 +217,55 @@ export default function ProjectDetail() {
                         <div className="text-4xl mb-2">🧵</div>
                         <p>No materials added yet</p>
                         <p className="text-sm">Add materials to track what you need for this project</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Patterns */}
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                        <BookOpen className="w-5 h-5" />
+                        Patterns ({totalPatterns})
+                      </h2>
+                      <button
+                        onClick={() => navigate(`/projects/edit/${project.id}`)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add Pattern
+                      </button>
+                    </div>
+                    
+                    {project.patterns.length > 0 ? (
+                      <div className="space-y-3">
+                        {project.patterns.map((pattern) => (
+                          <div key={pattern.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <h3 className="font-medium text-gray-900 dark:text-white">{pattern.patternName}</h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                  by {pattern.patternDesigner} • {pattern.patternCategory.replace('-', ' ')} • {pattern.patternDifficulty}
+                                </p>
+                                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                                  Added {new Date(pattern.addedAt).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => handleRemovePattern(pattern.id)}
+                                className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <div className="text-4xl mb-2">📋</div>
+                        <p>No patterns added yet</p>
+                        <p className="text-sm">Add patterns to track which sewing patterns you're using for this project</p>
                       </div>
                     )}
                   </div>

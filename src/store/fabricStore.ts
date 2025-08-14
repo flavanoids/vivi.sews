@@ -40,12 +40,23 @@ export interface ProjectMaterial {
   addedAt: string;
 }
 
+export interface ProjectPattern {
+  id: string;
+  patternId: string;
+  patternName: string;
+  patternDesigner: string;
+  patternCategory: Pattern['category'];
+  patternDifficulty: Pattern['difficulty'];
+  addedAt: string;
+}
+
 export interface Project {
   id: string;
   name: string;
   description?: string;
   status: 'planning' | 'in-progress' | 'completed' | 'on-hold';
   materials: ProjectMaterial[];
+  patterns: ProjectPattern[];
   imageUrl?: string;
   createdAt: string;
   updatedAt: string;
@@ -96,6 +107,8 @@ interface FabricStore {
   addMaterialToProject: (projectId: string, material: Omit<ProjectMaterial, 'id' | 'addedAt'>) => void;
   removeMaterialFromProject: (projectId: string, materialId: string) => void;
   updateProjectMaterial: (projectId: string, materialId: string, updates: Partial<ProjectMaterial>) => void;
+  addPatternToProject: (projectId: string, pattern: Omit<ProjectPattern, 'id' | 'addedAt'>) => void;
+  removePatternFromProject: (projectId: string, patternId: string) => void;
   
   // Pattern methods
   addPattern: (pattern: Omit<Pattern, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => void;
@@ -185,6 +198,17 @@ const initialProjects: Project[] = [
         addedAt: new Date().toISOString(),
       }
     ],
+    patterns: [
+      {
+        id: '1',
+        patternId: '1',
+        patternName: 'Classic A-Line Dress',
+        patternDesigner: 'Simplicity',
+        patternCategory: 'dresses',
+        patternDifficulty: 'beginner',
+        addedAt: new Date().toISOString(),
+      }
+    ],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     targetDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
@@ -207,6 +231,7 @@ const initialProjects: Project[] = [
         addedAt: new Date().toISOString(),
       }
     ],
+    patterns: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     userId: 'user-001',
@@ -440,6 +465,46 @@ export const useFabricStore = create<FabricStore>()(
                       ? { ...material, ...updates }
                       : material
                   ),
+                  updatedAt: new Date().toISOString()
+                }
+              : project
+          )
+        }));
+      },
+      
+      addPatternToProject: (projectId, patternData) => {
+        const currentUser = useAuthStore.getState().currentUser;
+        if (!currentUser) return;
+        
+        const newPattern: ProjectPattern = {
+          ...patternData,
+          id: Date.now().toString(),
+          addedAt: new Date().toISOString(),
+        };
+        
+        set((state) => ({
+          projects: state.projects.map((project) =>
+            project.id === projectId && project.userId === currentUser.id
+              ? { 
+                  ...project, 
+                  patterns: [...project.patterns, newPattern],
+                  updatedAt: new Date().toISOString()
+                }
+              : project
+          )
+        }));
+      },
+      
+      removePatternFromProject: (projectId, patternId) => {
+        const currentUser = useAuthStore.getState().currentUser;
+        if (!currentUser) return;
+        
+        set((state) => ({
+          projects: state.projects.map((project) =>
+            project.id === projectId && project.userId === currentUser.id
+              ? { 
+                  ...project, 
+                  patterns: project.patterns.filter(p => p.id !== patternId),
                   updatedAt: new Date().toISOString()
                 }
               : project

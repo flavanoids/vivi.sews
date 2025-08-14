@@ -23,6 +23,8 @@ export default function AddProject() {
     notes: string;
   }>>([]);
   
+
+  
   const [showMaterialSelector, setShowMaterialSelector] = useState(false);
   const [newMaterial, setNewMaterial] = useState({
     fabricId: '',
@@ -59,6 +61,7 @@ export default function AddProject() {
       description: formData.description.trim() || undefined,
       status: formData.status,
       materials: [],
+      patterns: [],
       imageUrl: formData.imageUrl || undefined,
       targetDate: formData.targetDate || undefined,
       notes: formData.notes.trim() || undefined,

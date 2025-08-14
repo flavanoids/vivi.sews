@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, BookOpen } from 'lucide-react';
 import { useFabricStore, type ProjectMaterial } from '../store/fabricStore';
 import ImageUpload from '../components/ImageUpload';
 
@@ -10,10 +10,13 @@ export default function EditProject() {
   const { 
     projects, 
     fabrics, 
+    patterns,
     updateProject, 
     addMaterialToProject, 
     removeMaterialFromProject,
     updateProjectMaterial,
+    addPatternToProject,
+    removePatternFromProject,
     isDarkMode 
   } = useFabricStore();
   
@@ -29,6 +32,7 @@ export default function EditProject() {
   });
   
   const [showMaterialSelector, setShowMaterialSelector] = useState(false);
+  const [showPatternSelector, setShowPatternSelector] = useState(false);
   const [newMaterial, setNewMaterial] = useState({
     fabricId: '',
     yardsUsed: 0,
@@ -95,6 +99,24 @@ export default function EditProject() {
 
   const handleRemoveMaterial = (materialId: string) => {
     removeMaterialFromProject(project.id, materialId);
+  };
+
+  const handleAddPattern = (patternId: string) => {
+    const pattern = patterns.find(p => p.id === patternId);
+    if (pattern) {
+      addPatternToProject(project.id, {
+        patternId: pattern.id,
+        patternName: pattern.name,
+        patternDesigner: pattern.designer,
+        patternCategory: pattern.category,
+        patternDifficulty: pattern.difficulty,
+      });
+      setShowPatternSelector(false);
+    }
+  };
+
+  const handleRemovePattern = (patternId: string) => {
+    removePatternFromProject(project.id, patternId);
   };
 
   const handleUpdateMaterial = (materialId: string, updates: Partial<ProjectMaterial>) => {
@@ -288,6 +310,57 @@ export default function EditProject() {
                 )}
               </div>
 
+              {/* Patterns Section */}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                    <BookOpen className="w-5 h-5" />
+                    Patterns ({project.patterns.length})
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setShowPatternSelector(true)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Pattern
+                  </button>
+                </div>
+
+                {project.patterns.length > 0 ? (
+                  <div className="space-y-3">
+                    {project.patterns.map((pattern) => (
+                      <div key={pattern.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-medium text-gray-900 dark:text-white">{pattern.patternName}</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              by {pattern.patternDesigner} • {pattern.patternCategory.replace('-', ' ')} • {pattern.patternDifficulty}
+                            </p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                              Added {new Date(pattern.addedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemovePattern(pattern.id)}
+                            className="p-1 text-gray-400 hover:text-red-500 transition-colors ml-2"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <div className="text-4xl mb-2">📋</div>
+                    <p>No patterns added yet</p>
+                    <p className="text-sm">Add patterns to track which sewing patterns you're using for this project</p>
+                  </div>
+                )}
+              </div>
+
               {/* Notes */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -392,6 +465,46 @@ export default function EditProject() {
                 className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
               >
                 Add Material
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pattern Selector Modal */}
+      {showPatternSelector && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Add Pattern</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Select Pattern
+                </label>
+                <select
+                  onChange={(e) => handleAddPattern(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+                  <option value="">Choose a pattern...</option>
+                  {patterns
+                    .filter(pattern => !project.patterns.some(p => p.patternId === pattern.id))
+                    .map(pattern => (
+                      <option key={pattern.id} value={pattern.id}>
+                        {pattern.name} by {pattern.designer} ({pattern.category.replace('-', ' ')}, {pattern.difficulty})
+                      </option>
+                    ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => setShowPatternSelector(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Cancel
               </button>
             </div>
           </div>
