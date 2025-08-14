@@ -382,7 +382,6 @@ function FabricCard({ fabric, onTogglePin, onUseFabric, onEdit, onDelete }: Fabr
 
 // Enhanced empty state component
 function EmptyState() {
-  const { isDarkMode } = useFabricStore();
   const { t } = useLanguage();
   
   return (
