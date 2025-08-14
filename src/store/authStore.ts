@@ -12,6 +12,8 @@ export interface User {
   createdAt: string;
   lastLogin?: string;
   isEmailVerified: boolean;
+  failedLoginAttempts: number;
+  lockedUntil?: string;
 }
 
 export interface LoginCredentials {
@@ -39,6 +41,10 @@ interface AuthStore {
   allowSignups: boolean;
   requireApproval: boolean;
   
+  // Security settings
+  maxLoginAttempts: number;
+  lockoutDuration: number; // in minutes
+  
   // Authentication methods
   login: (credentials: LoginCredentials) => Promise<{ success: boolean; message: string }>;
   logout: () => void;
@@ -53,6 +59,7 @@ interface AuthStore {
   resetUserPassword: (userId: string, newPassword: string) => void;
   toggleSignups: () => void;
   toggleApproval: () => void;
+  unlockUser: (userId: string) => void;
   
   // User preferences
   updateUserLanguage: (userId: string, language: 'en' | 'es') => void;
@@ -60,6 +67,7 @@ interface AuthStore {
   // Utility methods
   getUserById: (userId: string) => User | undefined;
   isAdmin: () => boolean;
+  isUserLocked: (user: User) => boolean;
 }
 
 // Create default admin user
@@ -73,6 +81,7 @@ const defaultAdmin: User = {
   language: 'en',
   createdAt: new Date().toISOString(),
   isEmailVerified: true,
+  failedLoginAttempts: 0,
 };
 
 // Create some sample users
@@ -87,6 +96,7 @@ const sampleUsers: User[] = [
     language: 'en',
     createdAt: new Date().toISOString(),
     isEmailVerified: true,
+    failedLoginAttempts: 0,
   },
   {
     id: 'user-002',
@@ -98,6 +108,7 @@ const sampleUsers: User[] = [
     language: 'es',
     createdAt: new Date().toISOString(),
     isEmailVerified: false,
+    failedLoginAttempts: 0,
   },
 ];
 
@@ -110,21 +121,32 @@ export const useAuthStore = create<AuthStore>()(
       users: [defaultAdmin, ...sampleUsers],
       allowSignups: true,
       requireApproval: true,
+      maxLoginAttempts: 5,
+      lockoutDuration: 15, // 15 minutes
       
       login: async (credentials) => {
         set({ isLoading: true });
         
         try {
-          const { users } = get();
+          const { users, maxLoginAttempts, lockoutDuration } = get();
           const user = users.find(u => 
-            (u.email.toLowerCase() === credentials.emailOrUsername.toLowerCase() || 
-             u.username.toLowerCase() === credentials.emailOrUsername.toLowerCase()) &&
-            u.password === credentials.password
+            u.email.toLowerCase() === credentials.emailOrUsername.toLowerCase() || 
+            u.username.toLowerCase() === credentials.emailOrUsername.toLowerCase()
           );
           
           if (!user) {
             set({ isLoading: false });
             return { success: false, message: 'Invalid email/username or password' };
+          }
+          
+          // Check if user is locked out
+          if (user.lockedUntil && new Date(user.lockedUntil) > new Date()) {
+            const remainingMinutes = Math.ceil((new Date(user.lockedUntil).getTime() - new Date().getTime()) / (1000 * 60));
+            set({ isLoading: false });
+            return { 
+              success: false, 
+              message: `Account is temporarily locked. Please try again in ${remainingMinutes} minutes.` 
+            };
           }
           
           if (user.status === 'suspended') {
@@ -137,15 +159,58 @@ export const useAuthStore = create<AuthStore>()(
             return { success: false, message: 'Account is pending approval. Please wait for admin approval.' };
           }
           
-          // Update last login
+          // Check password
+          if (user.password !== credentials.password) {
+            // Increment failed login attempts
+            const newFailedAttempts = (user.failedLoginAttempts || 0) + 1;
+            const updatedUsers = users.map(u => 
+              u.id === user.id 
+                ? { 
+                    ...u, 
+                    failedLoginAttempts: newFailedAttempts,
+                    lockedUntil: newFailedAttempts >= maxLoginAttempts 
+                      ? new Date(Date.now() + lockoutDuration * 60 * 1000).toISOString()
+                      : undefined
+                  }
+                : u
+            );
+            
+            set({ users: updatedUsers });
+            set({ isLoading: false });
+            
+            if (newFailedAttempts >= maxLoginAttempts) {
+              return { 
+                success: false, 
+                message: `Too many failed login attempts. Account locked for ${lockoutDuration} minutes.` 
+              };
+            }
+            
+            const remainingAttempts = maxLoginAttempts - newFailedAttempts;
+            return { 
+              success: false, 
+              message: `Invalid password. ${remainingAttempts} attempts remaining before account lockout.` 
+            };
+          }
+          
+          // Successful login - reset failed attempts and update last login
           const updatedUsers = users.map(u => 
             u.id === user.id 
-              ? { ...u, lastLogin: new Date().toISOString() }
+              ? { 
+                  ...u, 
+                  lastLogin: new Date().toISOString(),
+                  failedLoginAttempts: 0,
+                  lockedUntil: undefined
+                }
               : u
           );
           
           set({
-            currentUser: { ...user, lastLogin: new Date().toISOString() },
+            currentUser: { 
+              ...user, 
+              lastLogin: new Date().toISOString(),
+              failedLoginAttempts: 0,
+              lockedUntil: undefined
+            },
             isAuthenticated: true,
             isLoading: false,
             users: updatedUsers,
@@ -333,6 +398,24 @@ export const useAuthStore = create<AuthStore>()(
       isAdmin: () => {
         const { currentUser } = get();
         return currentUser?.role === 'admin';
+      },
+      
+      unlockUser: (userId) => {
+        const { users } = get();
+        const updatedUsers = users.map(u => 
+          u.id === userId 
+            ? { 
+                ...u, 
+                failedLoginAttempts: 0,
+                lockedUntil: undefined
+              } 
+            : u
+        );
+        set({ users: updatedUsers });
+      },
+      
+      isUserLocked: (user) => {
+        return user.lockedUntil && new Date(user.lockedUntil) > new Date();
       },
     }),
     {

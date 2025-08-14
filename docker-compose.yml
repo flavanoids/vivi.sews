@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  vivisews:
+    build: .
+    container_name: vivisews-app
+    ports:
+      - "8473:8473"
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    networks:
+      - vivisews-network
+    volumes:
+      - vivisews-logs:/var/log/nginx
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8473/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  vivisews-network:
+    driver: bridge
+
+volumes:
+  vivisews-logs:
+    driver: local
