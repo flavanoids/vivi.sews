@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Plus, Heart, Scissors, Moon, Sun, FolderOpen, User, Shield, LogOut, FileText } from 'lucide-react';
+import { Search, Plus, Heart, Scissors, Moon, Sun, FolderOpen, User, Shield, LogOut, FileText, Sparkles, Palette, Zap } from 'lucide-react';
 import { useFabricStore, type FabricEntry } from '../store/fabricStore';
 import { useAuthStore } from '../store/authStore';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -63,11 +63,38 @@ export default function Dashboard() {
 
   return (
     <div className={`min-h-screen transition-colors ${isDarkMode ? 'dark' : ''}`}>
-      <div className={`min-h-screen ${isDarkMode ? 'bg-gradient-to-br from-gray-900 to-gray-800' : 'bg-gradient-to-br from-blue-50 to-indigo-100'} bg-white/30 dark:bg-black/30 backdrop-blur-sm p-2 sm:p-4`}>
+      {/* Background decorative elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        {/* Floating geometric shapes */}
+        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-purple-200/20 to-pink-200/20 dark:from-purple-800/10 dark:to-pink-800/10 rounded-full blur-xl animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-br from-blue-200/20 to-indigo-200/20 dark:from-blue-800/10 dark:to-indigo-800/10 rounded-full blur-xl animate-pulse" style={{animationDelay: '1s'}}></div>
+        <div className="absolute bottom-40 left-20 w-20 h-20 bg-gradient-to-br from-green-200/20 to-teal-200/20 dark:from-green-800/10 dark:to-teal-800/10 rounded-full blur-xl animate-pulse" style={{animationDelay: '2s'}}></div>
+        
+        {/* Subtle grid pattern */}
+        <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.03]">
+          <div className="w-full h-full" style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, ${isDarkMode ? '#ffffff' : '#000000'} 1px, transparent 0)`,
+            backgroundSize: '40px 40px'
+          }}></div>
+        </div>
+        
+        {/* Floating icons */}
+        <div className="absolute top-1/4 left-1/4 text-purple-300/30 dark:text-purple-600/20 animate-bounce" style={{animationDelay: '0.5s'}}>
+          <Sparkles className="w-8 h-8" />
+        </div>
+        <div className="absolute top-1/3 right-1/4 text-blue-300/30 dark:text-blue-600/20 animate-bounce" style={{animationDelay: '1.5s'}}>
+          <Palette className="w-6 h-6" />
+        </div>
+        <div className="absolute bottom-1/4 left-1/3 text-green-300/30 dark:text-green-600/20 animate-bounce" style={{animationDelay: '2.5s'}}>
+          <Zap className="w-7 h-7" />
+        </div>
+      </div>
+
+      <div className={`min-h-screen ${isDarkMode ? 'bg-gradient-to-br from-gray-900 to-gray-800' : 'bg-gradient-to-br from-blue-50 to-indigo-100'} bg-white/30 dark:bg-black/30 backdrop-blur-sm p-2 sm:p-4 relative z-10`}>
         <div className="max-w-7xl mx-auto">
         <div className="mb-6 sm:mb-8">
-          <div className="text-center mb-6">
-            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+          <div className="text-center mb-6 animate-slide-in-up">
+            <h1 className="text-3xl sm:text-4xl font-bold gradient-text-animated mb-2">
               vivi.sews
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
@@ -212,15 +239,16 @@ export default function Dashboard() {
               {t('dashboard.pinnedFabrics')}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-              {pinnedFabrics.map((fabric) => (
-                <FabricCard 
-                  key={fabric.id} 
-                  fabric={fabric} 
-                  onTogglePin={togglePin}
-                  onUseFabric={() => setUsageDialogFabric(fabric)}
-                  onEdit={() => handleEdit(fabric)}
-                  onDelete={() => setDeleteDialogFabric(fabric)}
-                />
+              {pinnedFabrics.map((fabric, index) => (
+                <div key={fabric.id} className="grid-item animate-fade-in-scale" style={{animationDelay: `${index * 0.1}s`}}>
+                  <FabricCard 
+                    fabric={fabric} 
+                    onTogglePin={togglePin}
+                    onUseFabric={() => setUsageDialogFabric(fabric)}
+                    onEdit={() => handleEdit(fabric)}
+                    onDelete={() => setDeleteDialogFabric(fabric)}
+                  />
+                </div>
               ))}
             </div>
           </div>
@@ -230,18 +258,24 @@ export default function Dashboard() {
           <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
             {t('dashboard.allFabrics')} ({otherFabrics.length})
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-            {otherFabrics.map((fabric) => (
-              <FabricCard 
-                key={fabric.id} 
-                fabric={fabric} 
-                onTogglePin={togglePin}
-                onUseFabric={() => setUsageDialogFabric(fabric)}
-                onEdit={() => handleEdit(fabric)}
-                onDelete={() => setDeleteDialogFabric(fabric)}
-              />
-            ))}
-          </div>
+          
+          {otherFabrics.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+              {otherFabrics.map((fabric, index) => (
+                <div key={fabric.id} className="grid-item animate-fade-in-scale" style={{animationDelay: `${index * 0.1}s`}}>
+                  <FabricCard 
+                    fabric={fabric} 
+                    onTogglePin={togglePin}
+                    onUseFabric={() => setUsageDialogFabric(fabric)}
+                    onEdit={() => handleEdit(fabric)}
+                    onDelete={() => setDeleteDialogFabric(fabric)}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyState />
+          )}
         </div>
         
         <UsageDialog
@@ -276,51 +310,142 @@ interface FabricCardProps {
 
 function FabricCard({ fabric, onTogglePin, onUseFabric, onEdit, onDelete }: FabricCardProps) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow">
-      <div className="aspect-square bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 relative">
+    <div className="group bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-xl hover:scale-[1.02] transition-all duration-300 hover:border-purple-300/50 dark:hover:border-purple-600/50">
+      <div className="aspect-square bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 relative overflow-hidden">
         {fabric.imageUrl ? (
-          <img src={fabric.imageUrl} alt={fabric.name} className="w-full h-full object-cover" />
+          <img 
+            src={fabric.imageUrl} 
+            alt={fabric.name} 
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
+          />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-                      <div className="text-center text-gray-400">
-            <div className="text-4xl mb-2">🧵</div>
-            <div className="text-sm">No image</div>
-          </div>
+            <div className="text-center text-gray-400 group-hover:text-purple-400 transition-colors">
+              <div className="text-4xl mb-2 animate-pulse">🧵</div>
+              <div className="text-sm">No image</div>
+            </div>
           </div>
         )}
+        
+        {/* Gradient overlay on hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        
         <div className="absolute top-3 right-3 flex gap-2">
           <button
             onClick={() => onTogglePin(fabric.id)}
-            className={`p-2 rounded-full ${
+            className={`p-2 rounded-full backdrop-blur-sm ${
               fabric.isPinned 
-                ? 'bg-red-100 dark:bg-red-900/30 text-red-500 hover:bg-red-200 dark:hover:bg-red-900/50' 
-                : 'bg-white/80 dark:bg-gray-800/80 text-gray-400 hover:bg-white dark:hover:bg-gray-800 hover:text-red-500'
-            } transition-colors`}
+                ? 'bg-red-100/90 dark:bg-red-900/50 text-red-500 hover:bg-red-200/90 dark:hover:bg-red-900/70' 
+                : 'bg-white/90 dark:bg-gray-800/90 text-gray-400 hover:bg-white dark:hover:bg-gray-800 hover:text-red-500'
+            } transition-all duration-200 hover:scale-110`}
           >
             <Heart className={`w-4 h-4 ${fabric.isPinned ? 'fill-current' : ''}`} />
           </button>
-          <div className="bg-white/80 dark:bg-gray-800/80 rounded-full hover:bg-white dark:hover:bg-gray-800 transition-colors">
+          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full hover:bg-white dark:hover:bg-gray-800 transition-all duration-200 hover:scale-110">
             <FabricCardMenu onEdit={onEdit} onDelete={onDelete} />
           </div>
+        </div>
+        
+        {/* Fabric type badge */}
+        <div className="absolute bottom-3 left-3">
+          <span className="px-2 py-1 text-xs font-medium bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full text-gray-700 dark:text-gray-300 border border-gray-200/50 dark:border-gray-700/50">
+            {fabric.type}
+          </span>
         </div>
       </div>
       
       <div className="p-4">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{fabric.name}</h3>
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+          {fabric.name}
+        </h3>
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{fabric.type} • {fabric.color}</p>
         
         <div className="flex justify-between items-center text-sm mb-3">
-          <span className="text-gray-600 dark:text-gray-400">{fabric.yardsLeft} yards left</span>
+          <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1">
+            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+            {fabric.yardsLeft} yards left
+          </span>
           <span className="font-semibold text-green-600 dark:text-green-400">${fabric.cost.toFixed(2)}</span>
         </div>
         
         <button
           onClick={onUseFabric}
-          className="w-full bg-purple-50 dark:bg-purple-900/30 hover:bg-purple-100 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-300 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors text-sm font-medium"
+          className="w-full bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-900/50 dark:hover:to-pink-900/50 text-purple-700 dark:text-purple-300 py-2 rounded-lg flex items-center justify-center gap-2 transition-all duration-200 text-sm font-medium hover:shadow-md hover:scale-[1.02] border border-purple-200/50 dark:border-purple-700/50"
         >
           <Scissors className="w-4 h-4" />
           Use Fabric
         </button>
+      </div>
+    </div>
+  );
+}
+
+// Enhanced empty state component
+function EmptyState() {
+  const { isDarkMode } = useFabricStore();
+  const { t } = useLanguage();
+  
+  return (
+    <div className="text-center py-16 px-4 animate-slide-in-up">
+      {/* Decorative background elements for empty state */}
+      <div className="relative mb-8">
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-32 h-32 bg-gradient-to-br from-purple-100/50 to-pink-100/50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-full blur-2xl animate-pulse-glow"></div>
+        </div>
+        
+        <div className="relative z-10">
+          <div className="text-8xl mb-4 animate-float" style={{animationDelay: '0.5s'}}>
+            🧵
+          </div>
+          <div className="text-6xl mb-4 animate-float" style={{animationDelay: '1s'}}>
+            ✂️
+          </div>
+          <div className="text-7xl animate-float" style={{animationDelay: '1.5s'}}>
+            🎨
+          </div>
+        </div>
+      </div>
+      
+      <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+        {t('dashboard.emptyState.title') || 'No fabrics yet'}
+      </h3>
+      <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
+        {t('dashboard.emptyState.description') || 'Start building your fabric collection by adding your first piece. Track colors, types, and costs to keep your sewing projects organized.'}
+      </p>
+      
+      <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <Link 
+          to="/add"
+          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 rounded-lg flex items-center gap-2 transition-all transform hover:scale-105 shadow-lg"
+        >
+          <Plus className="w-5 h-5" />
+          {t('fabrics.addFabric')}
+        </Link>
+        
+        <div className="flex gap-2">
+          <div className="w-3 h-3 bg-purple-400 rounded-full animate-pulse"></div>
+          <div className="w-3 h-3 bg-pink-400 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+          <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+        </div>
+      </div>
+      
+      {/* Quick tips */}
+      <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto">
+        <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-200/50 dark:border-gray-700/50 hover:scale-105 transition-transform duration-300 animate-fade-in-scale" style={{animationDelay: '0.2s'}}>
+          <div className="text-2xl mb-2 animate-float">📸</div>
+          <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Take Photos</h4>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Capture your fabric textures and colors</p>
+        </div>
+        <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-200/50 dark:border-gray-700/50 hover:scale-105 transition-transform duration-300 animate-fade-in-scale" style={{animationDelay: '0.4s'}}>
+          <div className="text-2xl mb-2 animate-float" style={{animationDelay: '0.5s'}}>🏷️</div>
+          <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Track Details</h4>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Record type, color, and yardage</p>
+        </div>
+        <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-200/50 dark:border-gray-700/50 hover:scale-105 transition-transform duration-300 animate-fade-in-scale" style={{animationDelay: '0.6s'}}>
+          <div className="text-2xl mb-2 animate-float" style={{animationDelay: '1s'}}>💡</div>
+          <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Get Inspired</h4>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Plan your next sewing project</p>
+        </div>
       </div>
     </div>
   );

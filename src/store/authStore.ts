@@ -51,6 +51,9 @@ interface AuthStore {
   signup: (data: SignupData) => Promise<{ success: boolean; message: string }>;
   changePassword: (userId: string, currentPassword: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
   
+  // User profile methods
+  updateUserProfile: (userId: string, updates: { email?: string; username?: string }) => Promise<{ success: boolean; message: string }>;
+  
   // Admin methods
   approveUser: (userId: string) => void;
   suspendUser: (userId: string) => void;
@@ -267,6 +270,7 @@ export const useAuthStore = create<AuthStore>()(
           language: 'en', // Default to English
           createdAt: new Date().toISOString(),
           isEmailVerified: false,
+          failedLoginAttempts: 0,
         };
         
         set({
@@ -318,6 +322,67 @@ export const useAuthStore = create<AuthStore>()(
         }
         
         return { success: true, message: 'Password changed successfully' };
+      },
+      
+      updateUserProfile: async (userId, updates) => {
+        const { users, currentUser } = get();
+        
+        if (!currentUser) {
+          return { success: false, message: 'Not authenticated' };
+        }
+        
+        // Only allow users to update their own profile, or admins to update any profile
+        if (currentUser.id !== userId && currentUser.role !== 'admin') {
+          return { success: false, message: 'Unauthorized' };
+        }
+        
+        const user = users.find(u => u.id === userId);
+        if (!user) {
+          return { success: false, message: 'User not found' };
+        }
+        
+        // Validate email format if provided
+        if (updates.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(updates.email)) {
+          return { success: false, message: 'Please enter a valid email address' };
+        }
+        
+        // Check if email is already taken by another user
+        if (updates.email && updates.email.toLowerCase() !== user.email.toLowerCase()) {
+          const emailExists = users.some(u => 
+            u.id !== userId && u.email.toLowerCase() === updates.email!.toLowerCase()
+          );
+          if (emailExists) {
+            return { success: false, message: 'Email address is already in use' };
+          }
+        }
+        
+        // Check if username is already taken by another user
+        if (updates.username && updates.username.toLowerCase() !== user.username.toLowerCase()) {
+          const usernameExists = users.some(u => 
+            u.id !== userId && u.username.toLowerCase() === updates.username!.toLowerCase()
+          );
+          if (usernameExists) {
+            return { success: false, message: 'Username is already taken' };
+          }
+        }
+        
+        // Validate username length
+        if (updates.username && updates.username.length < 3) {
+          return { success: false, message: 'Username must be at least 3 characters long' };
+        }
+        
+        const updatedUsers = users.map(u => 
+          u.id === userId ? { ...u, ...updates } : u
+        );
+        
+        set({ users: updatedUsers });
+        
+        // Update current user if they updated their own profile
+        if (currentUser.id === userId) {
+          set({ currentUser: { ...currentUser, ...updates } });
+        }
+        
+        return { success: true, message: 'Profile updated successfully' };
       },
       
       approveUser: (userId) => {
@@ -415,7 +480,7 @@ export const useAuthStore = create<AuthStore>()(
       },
       
       isUserLocked: (user) => {
-        return user.lockedUntil && new Date(user.lockedUntil) > new Date();
+        return !!(user.lockedUntil && new Date(user.lockedUntil) > new Date());
       },
     }),
     {

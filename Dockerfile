@@ -1,5 +1,5 @@
 # Multi-stage build for production
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 # Set working directory
 WORKDIR /app
@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install all dependencies (including dev dependencies for build)
+RUN npm ci
 
 # Copy source code
 COPY . .
@@ -36,7 +36,9 @@ RUN addgroup -g 1001 -S nginx-user && \
 RUN chown -R nginx-user:nginx-user /var/cache/nginx && \
     chown -R nginx-user:nginx-user /var/log/nginx && \
     chown -R nginx-user:nginx-user /etc/nginx/conf.d && \
-    chown -R nginx-user:nginx-user /usr/share/nginx/html
+    chown -R nginx-user:nginx-user /usr/share/nginx/html && \
+    mkdir -p /run && \
+    chown -R nginx-user:nginx-user /run
 
 # Switch to non-root user
 USER nginx-user

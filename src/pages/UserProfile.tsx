@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   ArrowLeft, 
@@ -11,7 +11,9 @@ import {
   Save,
   LogOut,
   Sun,
-  Moon
+  Moon,
+  Edit,
+  X
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useFabricStore } from '../store/fabricStore';
@@ -20,7 +22,8 @@ export default function UserProfile() {
   const { 
     currentUser, 
     logout, 
-    changePassword
+    changePassword,
+    updateUserProfile
   } = useAuthStore();
   
   const { isDarkMode, toggleDarkMode } = useFabricStore();
@@ -28,11 +31,26 @@ export default function UserProfile() {
   const { getUserFabrics, getUserProjects, getUserUsageHistory } = useFabricStore();
   
   const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [showProfileForm, setShowProfileForm] = useState(false);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
+  const [profileData, setProfileData] = useState({
+    email: currentUser?.email || '',
+    username: currentUser?.username || '',
+  });
+
+  // Update profile data when currentUser changes
+  React.useEffect(() => {
+    if (currentUser) {
+      setProfileData({
+        email: currentUser.email,
+        username: currentUser.username,
+      });
+    }
+  }, [currentUser]);
   const [showPasswords, setShowPasswords] = useState({
     current: false,
     new: false,
@@ -101,6 +119,39 @@ export default function UserProfile() {
     }
   };
 
+  const handleProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!profileData.email || !profileData.username) {
+      setMessage({ type: 'error', text: 'Please fill in all fields' });
+      return;
+    }
+
+    const updates: { email?: string; username?: string } = {};
+    
+    if (profileData.email !== currentUser.email) {
+      updates.email = profileData.email;
+    }
+    
+    if (profileData.username !== currentUser.username) {
+      updates.username = profileData.username;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      setMessage({ type: 'error', text: 'No changes detected' });
+      return;
+    }
+
+    const result = await updateUserProfile(currentUser.id, updates);
+
+    if (result.success) {
+      setMessage({ type: 'success', text: result.message });
+      setShowProfileForm(false);
+    } else {
+      setMessage({ type: 'error', text: result.message });
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
@@ -155,56 +206,121 @@ export default function UserProfile() {
             <div className="lg:col-span-2 space-y-6">
               {/* User Info Card */}
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                  <User className="w-5 h-5" />
-                  Account Information
-                </h2>
-                
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Mail className="w-5 h-5 text-gray-400" />
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                    <User className="w-5 h-5" />
+                    Account Information
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setShowProfileForm(!showProfileForm);
+                      setMessage(null);
+                    }}
+                    className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium flex items-center gap-2"
+                  >
+                    {showProfileForm ? <X className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
+                    {showProfileForm ? 'Cancel' : 'Edit Profile'}
+                  </button>
+                </div>
+
+                {showProfileForm ? (
+                  <form onSubmit={handleProfileUpdate} className="space-y-4">
+                    {message && (
+                      <div className={`p-4 rounded-lg ${
+                        message.type === 'success' 
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' 
+                          : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
+                      }`}>
+                        {message.text}
+                      </div>
+                    )}
+
                     <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Email</p>
-                      <p className="text-gray-900 dark:text-white">{currentUser.email}</p>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Email Address
+                      </label>
+                      <input
+                        type="email"
+                        value={profileData.email}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                        className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="Enter your email address"
+                        required
+                      />
                     </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <User className="w-5 h-5 text-gray-400" />
+
                     <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Username</p>
-                      <p className="text-gray-900 dark:text-white">{currentUser.username}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <Shield className="w-5 h-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Role</p>
-                      <p className="text-gray-900 dark:text-white capitalize">{currentUser.role}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <Calendar className="w-5 h-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Member Since</p>
-                      <p className="text-gray-900 dark:text-white">
-                        {new Date(currentUser.createdAt).toLocaleDateString()}
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Username
+                      </label>
+                      <input
+                        type="text"
+                        value={profileData.username}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, username: e.target.value }))}
+                        className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="Enter your username"
+                        required
+                      />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Must be at least 3 characters long
                       </p>
                     </div>
-                  </div>
+
+                    <button
+                      type="submit"
+                      className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium"
+                    >
+                      <Save className="w-5 h-5" />
+                      Update Profile
+                    </button>
+                  </form>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Mail className="w-5 h-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Email</p>
+                        <p className="text-gray-900 dark:text-white">{currentUser.email}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <User className="w-5 h-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Username</p>
+                        <p className="text-gray-900 dark:text-white">{currentUser.username}</p>
+                      </div>
+                    </div>
                   
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5"></div>
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Status</p>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(currentUser.status)}`}>
-                        {currentUser.status}
-                      </span>
+                    <div className="flex items-center gap-3">
+                      <Shield className="w-5 h-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Role</p>
+                        <p className="text-gray-900 dark:text-white capitalize">{currentUser.role}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <Calendar className="w-5 h-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Member Since</p>
+                        <p className="text-gray-900 dark:text-white">
+                          {new Date(currentUser.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <div className="w-5 h-5"></div>
+                      <div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Status</p>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(currentUser.status)}`}>
+                          {currentUser.status}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Stats Card */}
@@ -234,7 +350,10 @@ export default function UserProfile() {
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Change Password</h2>
                   <button
-                    onClick={() => setShowPasswordForm(!showPasswordForm)}
+                    onClick={() => {
+                      setShowPasswordForm(!showPasswordForm);
+                      setMessage(null);
+                    }}
                     className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium"
                   >
                     {showPasswordForm ? 'Cancel' : 'Change Password'}
