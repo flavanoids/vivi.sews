@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useFabricStore } from '../store/fabricStore';
+import { useAuthStore } from '../store/authStore';
 import ImageUpload from '../components/ImageUpload';
 
 interface FabricFormData {
@@ -20,6 +21,13 @@ export default function AddFabric() {
     addFabric: state.addFabric, 
     isDarkMode: state.isDarkMode 
   }));
+  const { currentUser, isAuthenticated } = useAuthStore();
+  
+  // Redirect if not authenticated
+  if (!isAuthenticated || !currentUser) {
+    navigate('/login');
+    return null;
+  }
   const [formData, setFormData] = useState<FabricFormData>({
     name: '',
     type: '',
@@ -53,12 +61,18 @@ export default function AddFabric() {
       imageUrl = URL.createObjectURL(selectedImage);
     }
     
-    addFabric({
-      ...formData,
-      isPinned: false,
-      imageUrl,
-    });
-    navigate('/');
+    try {
+      addFabric({
+        ...formData,
+        isPinned: false,
+        imageUrl,
+      });
+      navigate('/');
+    } catch (error) {
+      console.error('Error adding fabric:', error);
+      // You could add a toast notification here
+      alert('Error adding fabric. Please try again.');
+    }
   };
 
   return (

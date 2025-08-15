@@ -291,7 +291,10 @@ export const useFabricStore = create<FabricStore>()(
       // Fabric methods
       addFabric: (fabricData) => {
         const currentUser = useAuthStore.getState().currentUser;
-        if (!currentUser) return;
+        if (!currentUser) {
+          console.error('No authenticated user found when adding fabric');
+          throw new Error('User not authenticated');
+        }
         
         const newFabric: FabricEntry = {
           ...fabricData,
@@ -300,6 +303,9 @@ export const useFabricStore = create<FabricStore>()(
           updatedAt: new Date().toISOString(),
           userId: currentUser.id,
         };
+        
+        console.log('Adding fabric:', newFabric);
+        
         set((state) => ({
           fabrics: [...state.fabrics, newFabric]
         }));
