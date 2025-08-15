@@ -69,6 +69,17 @@ export default function Login() {
                 >
                   Clear Cache & Reload
                 </button>
+                <button 
+                  onClick={() => {
+                    // Clear specific auth store data
+                    localStorage.removeItem('auth-store');
+                    sessionStorage.clear();
+                    window.location.reload();
+                  }}
+                  className="text-red-500 hover:text-red-700 underline ml-4"
+                >
+                  Reset Auth Store
+                </button>
               </div>
             </div>
 
