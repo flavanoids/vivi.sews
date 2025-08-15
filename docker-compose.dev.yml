@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  vivisews-dev:
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: vivisews-dev
+    ports:
+      - "8473:8473"
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=development
+      - VITE_APP_TITLE=Vivisews (Dev)
+    networks:
+      - vivisews-dev-network
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - vivisews-dev-logs:/var/log/nginx
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8473/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  vivisews-dev-network:
+    driver: bridge
+
+volumes:
+  vivisews-dev-logs:
+    driver: local

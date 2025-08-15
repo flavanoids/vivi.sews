@@ -228,23 +228,37 @@ To modify the default port (8473):
 ## Development Environment
 
 **Prerequisites:**
-- Node.js 18+
-- npm
+- Docker and Docker Compose
 
 **Development Workflow:**
 ```bash
-# Install dependencies
-npm install
+# Start development environment
+./scripts/dev.sh start
 
-# Start development server
-npm run dev
+# View development logs
+./scripts/dev.sh logs
 
-# Build for production
-npm run build
+# Stop development environment
+./scripts/dev.sh stop
 
-# Execute linting
-npm run lint
+# Restart development environment
+./scripts/dev.sh restart
+
+# Access container shell
+./scripts/dev.sh shell
+
+# Rebuild development container
+./scripts/dev.sh build
+
+# Clean up development environment
+./scripts/dev.sh clean
 ```
+
+**Development Features:**
+- Hot reloading with Vite development server
+- Source code mounted for live editing
+- Containerized environment for consistency
+- No local Node.js installation required
 
 **Project Architecture:**
 ```

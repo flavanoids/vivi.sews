@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Development artifacts
+dist
+dist-ssr
+*.local
+
+# Docker development
+docker-compose.override.yml
