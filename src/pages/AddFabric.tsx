@@ -23,8 +23,11 @@ export default function AddFabric() {
   }));
   const { currentUser, isAuthenticated } = useAuthStore();
   
+  console.log('AddFabric component rendered', { isAuthenticated, currentUser });
+  
   // Redirect if not authenticated
   if (!isAuthenticated || !currentUser) {
+    console.log('User not authenticated, redirecting to login');
     navigate('/login');
     return null;
   }
@@ -38,6 +41,7 @@ export default function AddFabric() {
     notes: '',
   });
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -55,6 +59,7 @@ export default function AddFabric() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
     let imageUrl: string | undefined;
     if (selectedImage) {
@@ -62,6 +67,7 @@ export default function AddFabric() {
     }
     
     try {
+      console.log('Submitting fabric data:', { ...formData, isPinned: false, imageUrl });
       addFabric({
         ...formData,
         isPinned: false,
@@ -70,10 +76,23 @@ export default function AddFabric() {
       navigate('/');
     } catch (error) {
       console.error('Error adding fabric:', error);
-      // You could add a toast notification here
       alert('Error adding fabric. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  // Add a simple fallback in case of rendering issues
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-4">Loading...</h2>
+          <p>Please wait while we load the form.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen transition-colors ${isDarkMode ? 'dark bg-gradient-to-br from-gray-900 to-gray-800' : 'bg-gradient-to-br from-blue-50 to-indigo-100'}`}>
@@ -225,9 +244,10 @@ export default function AddFabric() {
               <div className="flex flex-col sm:flex-row gap-3 pt-6">
                 <button
                   type="submit"
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                  disabled={isLoading}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Save Fabric
+                  {isLoading ? 'Saving...' : 'Save Fabric'}
                 </button>
                 <button
                   type="button"
