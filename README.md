@@ -1,6 +1,16 @@
 # 🧵 Vivisews
 
-A sewing project management app I built to keep track of my fabric stash, patterns, and projects. It's a React app with a clean interface that works great on both desktop and mobile.
+A sewing project management app built to keep track of fabric stash, patterns, and projects. It's a React app with a clean interface that works great on both desktop and mobile.
+
+## 👨‍💻 Created by
+
+**Noe Pineda** - Built with ❤️ for my wife
+
+### 🤖 Built with Cursor
+
+This project was developed using [Cursor](https://cursor.sh), an AI-powered code editor that helped accelerate development and improve code quality.
+
+---
 
 ## What it does
 
