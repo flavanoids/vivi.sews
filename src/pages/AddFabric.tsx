@@ -25,12 +25,25 @@ export default function AddFabric() {
   
   console.log('AddFabric component rendered', { isAuthenticated, currentUser });
   
-  // Redirect if not authenticated
+  // Simple test - just show a basic page first
   if (!isAuthenticated || !currentUser) {
-    console.log('User not authenticated, redirecting to login');
-    navigate('/login');
-    return null;
+    console.log('User not authenticated, showing error page');
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-center p-8 bg-white rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Authentication Error</h2>
+          <p className="text-gray-600 mb-4">You need to be logged in to access this page.</p>
+          <button 
+            onClick={() => navigate('/login')}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    );
   }
+
   const [formData, setFormData] = useState<FabricFormData>({
     name: '',
     type: '',
@@ -82,17 +95,7 @@ export default function AddFabric() {
     }
   };
 
-  // Add a simple fallback in case of rendering issues
-  if (!currentUser) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-4">Loading...</h2>
-          <p>Please wait while we load the form.</p>
-        </div>
-      </div>
-    );
-  }
+  console.log('Rendering AddFabric form for user:', currentUser.username);
 
   return (
     <div className={`min-h-screen transition-colors ${isDarkMode ? 'dark bg-gradient-to-br from-gray-900 to-gray-800' : 'bg-gradient-to-br from-blue-50 to-indigo-100'}`}>
@@ -107,6 +110,9 @@ export default function AddFabric() {
               Back to Collection
             </button>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Add New Fabric</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+              Logged in as: {currentUser.username}
+            </p>
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">

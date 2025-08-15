@@ -76,6 +76,14 @@ function App() {
                   <AddFabric />
                 </ProtectedRoute>
               } />
+              <Route path="/test" element={
+                <div className="min-h-screen flex items-center justify-center bg-blue-100">
+                  <div className="text-center p-8 bg-white rounded-lg shadow-md">
+                    <h1 className="text-3xl font-bold text-blue-600 mb-4">Test Page</h1>
+                    <p className="text-gray-600">This is a simple test page to verify routing works.</p>
+                  </div>
+                </div>
+              } />
               <Route path="/edit/:id" element={
                 <ProtectedRoute>
                   <EditFabric />
