@@ -259,7 +259,6 @@ export default function AddFabricDialog({ isOpen, onClose }: AddFabricDialogProp
               <ImageUpload
                 onImageSelect={handleImageSelect}
                 onImageRemove={handleImageRemove}
-                selectedImage={selectedImage}
               />
             </div>
 
