@@ -60,6 +60,7 @@ interface AuthStore {
   activateUser: (userId: string) => void;
   deleteUser: (userId: string) => void;
   resetUserPassword: (userId: string, newPassword: string) => void;
+  createAdminUser: (data: { email: string; username: string; password: string }) => Promise<{ success: boolean; message: string }>;
   toggleSignups: () => void;
   toggleApproval: () => void;
   unlockUser: (userId: string) => void;
@@ -219,17 +220,20 @@ export const useAuthStore = create<AuthStore>()(
           return { success: false, message: 'Email or username already exists' };
         }
         
+        // If this is the first user, make them an admin
+        const isFirstUser = users.length === 0;
+        
         // Create new user
         const newUser: User = {
           id: `user-${Date.now()}`,
           email: data.email.toLowerCase(),
           username: data.username,
           password: data.password, // In production, hash this
-          role: 'user',
-          status: requireApproval ? 'pending' : 'active',
+          role: isFirstUser ? 'admin' : 'user',
+          status: isFirstUser ? 'active' : (requireApproval ? 'pending' : 'active'),
           language: 'en', // Default to English
           createdAt: new Date().toISOString(),
-          isEmailVerified: false,
+          isEmailVerified: isFirstUser, // First user is automatically verified
           failedLoginAttempts: 0,
         };
         
@@ -237,9 +241,11 @@ export const useAuthStore = create<AuthStore>()(
           users: [...users, newUser],
         });
         
-        const message = requireApproval 
-          ? 'Account created successfully! Please wait for admin approval.'
-          : 'Account created successfully! You can now log in.';
+        const message = isFirstUser 
+          ? 'Admin account created successfully! You can now log in.'
+          : (requireApproval 
+            ? 'Account created successfully! Please wait for admin approval.'
+            : 'Account created successfully! You can now log in.');
         
         return { success: true, message };
       },
@@ -387,6 +393,54 @@ export const useAuthStore = create<AuthStore>()(
           u.id === userId ? { ...u, password: newPassword } : u
         );
         set({ users: updatedUsers });
+      },
+      
+      createAdminUser: async (data) => {
+        const { users, currentUser } = get();
+        
+        // Only allow existing admins to create new admin users
+        if (!currentUser || currentUser.role !== 'admin') {
+          return { success: false, message: 'Only administrators can create admin users' };
+        }
+        
+        // Validate input
+        if (!data.email || !data.username || !data.password) {
+          return { success: false, message: 'All fields are required' };
+        }
+        
+        if (data.password.length < 6) {
+          return { success: false, message: 'Password must be at least 6 characters long' };
+        }
+        
+        // Check if email or username already exists
+        const existingUser = users.find(u => 
+          u.email.toLowerCase() === data.email.toLowerCase() ||
+          u.username.toLowerCase() === data.username.toLowerCase()
+        );
+        
+        if (existingUser) {
+          return { success: false, message: 'Email or username already exists' };
+        }
+        
+        // Create new admin user
+        const newAdminUser: User = {
+          id: `admin-${Date.now()}`,
+          email: data.email.toLowerCase(),
+          username: data.username,
+          password: data.password, // In production, hash this
+          role: 'admin',
+          status: 'active',
+          language: 'en',
+          createdAt: new Date().toISOString(),
+          isEmailVerified: true,
+          failedLoginAttempts: 0,
+        };
+        
+        set({
+          users: [...users, newAdminUser],
+        });
+        
+        return { success: true, message: 'Admin user created successfully' };
       },
       
       toggleSignups: () => {
