@@ -1,6 +1,6 @@
 # 🧵 Vivisews
 
-A sewing project management app built to keep track of fabric stash, patterns, and projects. It's a React app with a clean interface that works great on both desktop and mobile.
+A comprehensive sewing project management application designed to track fabric inventory, pattern collections, and project workflows. Built with React and TypeScript, featuring a responsive interface optimized for both desktop and mobile environments.
 
 ## 👨‍💻 Created by
 
@@ -12,146 +12,146 @@ This project was developed using [Cursor](https://cursor.sh), an AI-powered code
 
 ---
 
-## What it does
+## Features
 
-- **Track your projects** - Keep notes on what you're working on, materials used, and progress
-- **Organize patterns** - Store and categorize your sewing patterns with photos and notes
-- **Manage fabric** - Log your fabric stash with details like yardage, fiber content, and cost
-- **User accounts** - Multiple people can use it with their own separate data
-- **Admin panel** - Manage users and system settings if you're running it for a group
+- **Project Management** - Comprehensive tracking of sewing projects with material usage, progress monitoring, and detailed notes
+- **Pattern Organization** - Digital catalog system for sewing patterns with metadata, photos, and categorization
+- **Fabric Inventory** - Detailed fabric management with yardage tracking, fiber content analysis, and cost monitoring
+- **Multi-User Support** - Isolated user accounts with separate data storage and access controls
+- **Administrative Interface** - User management and system configuration for multi-user deployments
 
-## Security stuff
+## Security Implementation
 
-I've added some basic security features since this could be used by multiple people:
-- Rate limiting on login attempts (5 tries per minute)
-- Account lockout after too many failed attempts (15 minutes)
-- Secure headers to prevent common web attacks
-- Input validation to keep things clean
+The application implements several security measures for multi-user environments:
+- Rate limiting on authentication attempts (5 attempts per minute)
+- Account lockout mechanism after excessive failed attempts (15-minute duration)
+- Security headers implementation to prevent common web vulnerabilities
+- Comprehensive input validation and sanitization
 
-## Getting it running
+## Installation
 
-### Option 1: Docker (easiest)
+### Option 1: Docker Deployment (Recommended)
 
-You'll need Docker and Docker Compose installed.
+Prerequisites: Docker and Docker Compose
 
-1. **Get the code**
+1. **Clone Repository**
    ```bash
    git clone <repository-url>
    cd vivisews
    ```
 
-2. **Start it up**
+2. **Deploy Application**
    ```bash
    docker-compose up -d
    ```
 
-3. **Open in your browser**
-   - On your computer: http://localhost:8473
-   - From other devices on your network: http://your-computer-ip:8473
+3. **Access Application**
+   - Local access: http://localhost:8473
+   - Network access: http://your-server-ip:8473
 
-**Useful Docker commands:**
+**Docker Management Commands:**
 ```bash
-# Start the app
+# Start application
 docker-compose up -d
 
-# See what's happening
+# Monitor logs
 docker-compose logs -f
 
-# Stop it
+# Stop application
 docker-compose down
 
-# Update and restart
+# Rebuild and restart
 docker-compose up -d --build
 ```
 
-### Option 2: Install on your server
+### Option 2: Server Installation
 
-This is for when you want to run it on a Linux server (Ubuntu, Debian, CentOS, etc.).
+For production deployments on Linux servers (Ubuntu, Debian, CentOS, etc.).
 
-**What you need:**
+**System Requirements:**
 - Node.js 18+ and npm
 - Docker and Docker Compose
-- A Linux system
+- Linux operating system
 
-**Quick install:**
-1. **Get the code**
+**Automated Installation:**
+1. **Clone Repository**
    ```bash
    git clone <repository-url>
    cd vivisews
    ```
 
-2. **Install Docker (if you don't have it)**
+2. **Install Docker Dependencies**
    ```bash
    chmod +x scripts/install-docker.sh
    ./scripts/install-docker.sh
    ```
 
-3. **Deploy it**
+3. **Deploy Application**
    ```bash
    chmod +x scripts/build.sh
    ./scripts/build.sh
    ```
 
-**Manual install (if you prefer):**
-1. **Install dependencies**
+**Manual Installation:**
+1. **Install Dependencies**
    ```bash
    npm ci
    ```
 
-2. **Build it**
+2. **Build Application**
    ```bash
    npm run build
    ```
 
-3. **Set up Nginx**
+3. **Configure Nginx**
    ```bash
    sudo cp nginx.conf /etc/nginx/sites-available/vivisews
    sudo ln -s /etc/nginx/sites-available/vivisews /etc/nginx/sites-enabled/
    sudo systemctl reload nginx
    ```
 
-4. **Open the firewall port**
+4. **Configure Firewall**
    ```bash
-   # For UFW
+   # UFW Configuration
    sudo ufw allow 8473/tcp
    
-   # For Firewalld
+   # Firewalld Configuration
    sudo firewall-cmd --permanent --add-port=8473/tcp
    sudo firewall-cmd --reload
    ```
 
-## Making it accessible on your network
+## Network Configuration
 
-The app runs on port **8473** by default. To access it from other devices on your network:
+The application operates on port **8473** by default. For network accessibility:
 
-1. **Find your computer's IP address**
+1. **Determine Server IP Address**
    ```bash
    hostname -I
    ```
 
-2. **Access from other devices**
+2. **Access from Network Devices**
    ```
-   http://your-computer-ip:8473
+   http://your-server-ip:8473
    ```
 
-## Making it accessible on the web (optional)
+## Internet Accessibility (Optional)
 
-If you want to access it from anywhere on the internet, you can use Cloudflare Tunnel. This is more secure than opening ports directly.
+For external access, Cloudflare Tunnel provides secure connectivity without direct port exposure.
 
 1. **Install Cloudflare Tunnel**
    ```bash
-   # Download cloudflared
+   # Download cloudflared binary
    wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
    sudo dpkg -i cloudflared-linux-amd64.deb
    ```
 
-2. **Set up with Cloudflare**
+2. **Initialize Tunnel**
    ```bash
    cloudflared tunnel login
    cloudflared tunnel create vivisews
    ```
 
-3. **Configure it**
+3. **Configure Tunnel**
    Create `~/.cloudflared/config.yml`:
    ```yaml
    tunnel: <your-tunnel-id>
@@ -163,25 +163,25 @@ If you want to access it from anywhere on the internet, you can use Cloudflare T
      - service: http_status:404
    ```
 
-4. **Start the tunnel**
+4. **Start Tunnel Service**
    ```bash
    cloudflared tunnel run vivisews
    ```
 
-5. **Set up your domain**
-   - Go to your Cloudflare dashboard
-   - Add a CNAME record pointing to `<your-tunnel-id>.cfargotunnel.com`
+5. **Configure DNS**
+   - Access Cloudflare dashboard
+   - Create CNAME record pointing to `<your-tunnel-id>.cfargotunnel.com`
 
-6. **Make it start automatically**
+6. **Enable Auto-start**
    ```bash
    sudo cloudflared service install
    ```
 
 ## Configuration
 
-### Environment variables
+### Environment Variables
 
-You can create a `.env` file in the project root to customize things:
+Create a `.env` file in the project root for customization:
 
 ```env
 NODE_ENV=production
@@ -189,49 +189,49 @@ VITE_APP_TITLE=Vivisews
 VITE_APP_VERSION=1.0.0
 ```
 
-### Nginx setup
+### Nginx Configuration
 
-The app comes with a pre-configured Nginx setup that includes:
-- Security headers to prevent attacks
-- Rate limiting on login attempts
-- Gzip compression for faster loading
-- Static file caching
+The application includes a pre-configured Nginx setup with:
+- Security headers for vulnerability prevention
+- Rate limiting for authentication endpoints
+- Gzip compression for performance optimization
+- Static file caching for improved load times
 
-### Changing the port
+### Port Configuration
 
-If you want to use a different port instead of 8473:
+To modify the default port (8473):
 
-1. **Update Docker Compose**
+1. **Update Docker Compose Configuration**
    ```yaml
    ports:
      - "your-port:8473"
    ```
 
-2. **Update Nginx**
+2. **Update Nginx Configuration**
    ```nginx
    listen your-port;
    ```
 
-3. **Update firewall**
+3. **Update Firewall Rules**
    ```bash
    sudo ufw allow your-port/tcp
    ```
 
-## Default login
+## Authentication
 
-**Admin account:**
+**Default Administrator Account:**
 - Username: `ADMIN`
 - Password: `ADMIN`
 
-**⚠️ Change this password right away after you first log in!**
+**⚠️ Security Notice: Change default credentials immediately after initial login**
 
-## Development
+## Development Environment
 
-**What you need:**
+**Prerequisites:**
 - Node.js 18+
 - npm
 
-**Getting started:**
+**Development Workflow:**
 ```bash
 # Install dependencies
 npm install
@@ -242,94 +242,94 @@ npm run dev
 # Build for production
 npm run build
 
-# Check code quality
+# Execute linting
 npm run lint
 ```
 
-**Project structure:**
+**Project Architecture:**
 ```
 vivisews/
 ├── src/
-│   ├── components/     # UI components
-│   ├── pages/         # Page components
-│   ├── store/         # State management
-│   ├── contexts/      # React contexts
-│   └── locales/       # Translations
-├── scripts/           # Build scripts
-├── Dockerfile         # Docker setup
-├── docker-compose.yml # Docker config
-└── nginx.conf         # Nginx config
+│   ├── components/     # Reusable UI components
+│   ├── pages/         # Route-based page components
+│   ├── store/         # State management (Zustand)
+│   ├── contexts/      # React context providers
+│   └── locales/       # Internationalization
+├── scripts/           # Deployment and build scripts
+├── Dockerfile         # Container configuration
+├── docker-compose.yml # Orchestration configuration
+└── nginx.conf         # Web server configuration
 ```
 
 ## Troubleshooting
 
-### Common problems
+### Common Issues
 
-1. **Port is already in use**
+1. **Port Conflict Resolution**
    ```bash
-   # See what's using the port
+   # Identify port usage
    sudo netstat -tulpn | grep 8473
    
-   # Kill the process or use a different port
+   # Resolve conflict or configure alternative port
    ```
 
-2. **Permission errors**
+2. **Permission Resolution**
    ```bash
    # Fix script permissions
    chmod +x scripts/*.sh
    
-   # Fix Docker permissions
+   # Configure Docker permissions
    sudo usermod -aG docker $USER
-   # Log out and log back in
+   # Re-authenticate user session
    ```
 
-3. **Service won't start**
+3. **Service Status Verification**
    ```bash
-   # Check if it's running
+   # Check service status
    sudo systemctl status vivisews
    
-   # See the logs
+   # Monitor service logs
    sudo journalctl -u vivisews -f
    ```
 
-4. **Docker build fails**
+4. **Docker Build Resolution**
    ```bash
    # Clear Docker cache
    docker system prune -a
    
-   # Try building again
+   # Rebuild without cache
    docker-compose build --no-cache
    ```
 
-### Where to find logs
+### Log Monitoring
 
-- **Docker logs**: `docker-compose logs -f`
-- **System logs**: `sudo journalctl -u vivisews -f`
-- **Nginx logs**: `sudo tail -f /var/log/nginx/access.log`
+- **Docker Logs**: `docker-compose logs -f`
+- **System Logs**: `sudo journalctl -u vivisews -f`
+- **Nginx Logs**: `sudo tail -f /var/log/nginx/access.log`
 
 ## License
 
-MIT License - feel free to use this however you want.
+MIT License - Open source software available for modification and distribution.
 
 ## Contributing
 
-If you want to help improve this:
-1. Fork the repo
-2. Make your changes
-3. Send a pull request
+Development contributions are welcome:
+1. Fork the repository
+2. Implement your changes
+3. Submit a pull request
 
-## Getting help
+## Support
 
-If something's not working:
-- Check the troubleshooting section above
-- Look at the logs to see what's going wrong
-- Create an issue in the repo if you're still stuck
+For technical issues:
+- Review the troubleshooting section above
+- Examine application logs for error details
+- Create an issue in the repository for unresolved problems
 
 ---
 
-**Note**: This is designed for personal use and small groups. If you're planning to use it for a larger organization, you might want to add things like:
-- SSL certificates
-- A proper database
-- Better user management
-- Backup systems
-- Monitoring tools
+**Deployment Note**: This application is optimized for personal use and small-scale deployments. For enterprise environments, consider implementing:
+- SSL/TLS certificate management
+- Database persistence layer
+- Enhanced user management system
+- Automated backup procedures
+- Application monitoring and alerting
