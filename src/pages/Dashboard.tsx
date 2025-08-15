@@ -276,7 +276,7 @@ export default function Dashboard() {
               ))}
             </div>
           ) : (
-            <EmptyState onAddFabric={() => setShowAddFabricDialog(true)} />
+            <EmptyState />
           )}
         </div>
         
@@ -388,8 +388,7 @@ function FabricCard({ fabric, onTogglePin, onUseFabric, onEdit, onDelete }: Fabr
 }
 
 // Enhanced empty state component
-function EmptyState({ onAddFabric }: { onAddFabric: () => void }) {
-  const { t } = useLanguage();
+function EmptyState() {
   
   return (
     <div className="text-center py-16 px-4 animate-slide-in-up">
@@ -403,40 +402,16 @@ function EmptyState({ onAddFabric }: { onAddFabric: () => void }) {
           <div className="text-8xl mb-4 animate-float" style={{animationDelay: '0.5s'}}>
             🧵
           </div>
-          <div className="text-6xl mb-4 animate-float" style={{animationDelay: '1s'}}>
+          <div className="text-6xl animate-float" style={{animationDelay: '1s'}}>
             ✂️
           </div>
-          <div className="text-7xl animate-float" style={{animationDelay: '1.5s'}}>
-            🎨
-          </div>
         </div>
       </div>
       
-      <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-        {t('dashboard.emptyState.title') || 'No fabrics yet'}
-      </h3>
-      <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
-        {t('dashboard.emptyState.description') || 'Start building your fabric collection by adding your first piece. Track colors, types, and costs to keep your sewing projects organized.'}
-      </p>
-      
-      <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-        <button 
-          onClick={onAddFabric}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 rounded-lg flex items-center gap-2 transition-all transform hover:scale-105 shadow-lg"
-        >
-          <Plus className="w-5 h-5" />
-          {t('fabrics.addFabric')}
-        </button>
-        
-        <div className="flex gap-2">
-          <div className="w-3 h-3 bg-purple-400 rounded-full animate-pulse"></div>
-          <div className="w-3 h-3 bg-pink-400 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-          <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
-        </div>
-      </div>
+
       
       {/* Quick tips */}
-      <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto">
+      <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto">
         <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-200/50 dark:border-gray-700/50 hover:scale-105 transition-transform duration-300 animate-fade-in-scale" style={{animationDelay: '0.2s'}}>
           <div className="text-2xl mb-2 animate-float">📸</div>
           <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Take Photos</h4>
