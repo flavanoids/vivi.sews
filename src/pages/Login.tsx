@@ -24,12 +24,18 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('Login attempt:', { 
+      emailOrUsername: credentials.emailOrUsername, 
+      password: credentials.password 
+    });
+    
     if (!credentials.emailOrUsername.trim() || !credentials.password.trim()) {
       setMessage({ type: 'error', text: 'Please fill in all fields' });
       return;
     }
 
     const result = await login(credentials);
+    console.log('Login result:', result);
     
     if (result.success) {
       setMessage({ type: 'success', text: result.message });
@@ -51,6 +57,19 @@ export default function Login() {
               <div className="text-6xl mb-4">🧵</div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome Back</h1>
               <p className="text-gray-600 dark:text-gray-400">Sign in to your vivi.sews account</p>
+              <div className="mt-4 text-xs text-gray-500">
+                <p>Default admin: ADMIN / ADMIN</p>
+                <button 
+                  onClick={() => {
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.reload();
+                  }}
+                  className="text-blue-500 hover:text-blue-700 underline"
+                >
+                  Clear Cache & Reload
+                </button>
+              </div>
             </div>
 
             {/* Message */}
