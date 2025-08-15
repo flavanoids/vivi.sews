@@ -219,10 +219,6 @@ To modify the default port (8473):
 
 ## Authentication
 
-**Default Administrator Account:**
-- Username: `ADMIN`
-- Password: `ADMIN`
-
 **⚠️ Security Notice: Change default credentials immediately after initial login**
 
 ## Development Environment

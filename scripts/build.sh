@@ -212,9 +212,6 @@ main() {
     echo -e "  Restart: sudo systemctl restart vivisews"
     echo -e "  Stop: sudo systemctl stop vivisews"
     echo ""
-    echo -e "${YELLOW}Default admin credentials:${NC}"
-    echo -e "  Username: ADMIN"
-    echo -e "  Password: ADMIN"
     echo -e "${YELLOW}⚠️  IMPORTANT: Change the default password after first login!${NC}"
 }
 

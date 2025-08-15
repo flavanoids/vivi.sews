@@ -86,7 +86,6 @@ export default function AddPattern() {
         setThumbnailUrl(thumbnailUrl);
       }
     } catch (error) {
-      console.error('Error generating thumbnail:', error);
       setErrors(prev => ({ ...prev, pdfFile: 'Error generating thumbnail' }));
     } finally {
       setIsUploading(false);
@@ -150,7 +149,6 @@ export default function AddPattern() {
       addPattern(patternData);
       navigate('/patterns');
     } catch (error) {
-      console.error('Error adding pattern:', error);
       setErrors(prev => ({ ...prev, submit: 'Error adding pattern' }));
     }
   };

@@ -17,17 +17,12 @@ interface FabricFormData {
 
 export default function AddFabric() {
   const navigate = useNavigate();
-  const { addFabric, isDarkMode } = useFabricStore(state => ({ 
-    addFabric: state.addFabric, 
-    isDarkMode: state.isDarkMode 
+  const { addFabric } = useFabricStore(state => ({ 
+    addFabric: state.addFabric
   }));
   const { currentUser, isAuthenticated } = useAuthStore();
   
-  console.log('AddFabric component rendered', { isAuthenticated, currentUser, isDarkMode });
-  
-  // Simple test - just show a basic page first
   if (!isAuthenticated || !currentUser) {
-    console.log('User not authenticated, showing error page');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-center p-8 bg-white rounded-lg shadow-md">
@@ -80,7 +75,6 @@ export default function AddFabric() {
     }
     
     try {
-      console.log('Submitting fabric data:', { ...formData, isPinned: false, imageUrl });
       addFabric({
         ...formData,
         isPinned: false,
@@ -88,21 +82,14 @@ export default function AddFabric() {
       });
       navigate('/');
     } catch (error) {
-      console.error('Error adding fabric:', error);
       alert('Error adding fabric. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  console.log('Rendering AddFabric form for user:', currentUser.username);
-
   return (
     <div className="min-h-screen bg-blue-100">
-      {/* Debug test div */}
-      <div className="fixed top-4 left-4 bg-red-500 text-white p-2 rounded z-50">
-        AddFabric Component Loaded - User: {currentUser.username}
-      </div>
       
       <div className="min-h-screen p-4">
         <div className="max-w-2xl mx-auto">

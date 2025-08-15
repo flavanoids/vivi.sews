@@ -73,47 +73,7 @@ interface AuthStore {
   isUserLocked: (user: User) => boolean;
 }
 
-// Create default admin user
-const defaultAdmin: User = {
-  id: 'admin-001',
-  email: 'admin@vivisews.com',
-  username: 'ADMIN',
-        password: 'ADMIN', // In production, this would be hashed
-  role: 'admin',
-  status: 'active',
-  language: 'en',
-  createdAt: new Date().toISOString(),
-  isEmailVerified: true,
-  failedLoginAttempts: 0,
-};
-
-// Create some sample users
-const sampleUsers: User[] = [
-  {
-    id: 'user-001',
-    email: 'john@example.com',
-    username: 'john_doe',
-    password: 'password123',
-    role: 'user',
-    status: 'active',
-    language: 'en',
-    createdAt: new Date().toISOString(),
-    isEmailVerified: true,
-    failedLoginAttempts: 0,
-  },
-  {
-    id: 'user-002',
-    email: 'jane@example.com',
-    username: 'jane_smith',
-    password: 'password123',
-    role: 'user',
-    status: 'pending',
-    language: 'es',
-    createdAt: new Date().toISOString(),
-    isEmailVerified: false,
-    failedLoginAttempts: 0,
-  },
-];
+// Initialize with empty users array - users will be created through signup
 
 export const useAuthStore = create<AuthStore>()(
   persist(
@@ -121,7 +81,7 @@ export const useAuthStore = create<AuthStore>()(
       currentUser: null,
       isAuthenticated: false,
       isLoading: false,
-      users: [defaultAdmin, ...sampleUsers],
+      users: [],
       allowSignups: true,
       requireApproval: true,
       maxLoginAttempts: 5,

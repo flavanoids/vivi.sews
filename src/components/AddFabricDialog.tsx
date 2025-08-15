@@ -82,7 +82,6 @@ export default function AddFabricDialog({ isOpen, onClose }: AddFabricDialogProp
       setSelectedImage(null);
       onClose();
     } catch (error) {
-      console.error('Error adding fabric:', error);
       alert('Error adding fabric. Please try again.');
     } finally {
       setIsLoading(false);
