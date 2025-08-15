@@ -8,6 +8,7 @@ import UsageDialog from '../components/UsageDialog';
 import FabricCardMenu from '../components/FabricCardMenu';
 import DeleteConfirmDialog from '../components/DeleteConfirmDialog';
 import LanguageSelector from '../components/LanguageSelector';
+import AddFabricDialog from '../components/AddFabricDialog';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -27,6 +28,7 @@ export default function Dashboard() {
   const [usageDialogFabric, setUsageDialogFabric] = useState<FabricEntry | null>(null);
   const [deleteDialogFabric, setDeleteDialogFabric] = useState<FabricEntry | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showAddFabricDialog, setShowAddFabricDialog] = useState(false);
 
   // Get user-specific fabrics
   const userFabrics = currentUser ? getUserFabrics(currentUser.id) : [];
@@ -192,13 +194,13 @@ export default function Dashboard() {
                 <FileText className="w-4 h-4" />
                 Patterns
               </Link>
-              <Link 
-                to="/add"
+              <button 
+                onClick={() => setShowAddFabricDialog(true)}
                 className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-colors"
               >
                 <Plus className="w-5 h-5" />
                 {t('fabrics.addFabric')}
-              </Link>
+              </button>
             </div>
           </div>
           
@@ -274,7 +276,7 @@ export default function Dashboard() {
               ))}
             </div>
           ) : (
-            <EmptyState />
+            <EmptyState onAddFabric={() => setShowAddFabricDialog(true)} />
           )}
         </div>
         
@@ -291,6 +293,11 @@ export default function Dashboard() {
           isOpen={!!deleteDialogFabric}
           onConfirm={handleDeleteConfirm}
           onCancel={() => setDeleteDialogFabric(null)}
+        />
+        
+        <AddFabricDialog
+          isOpen={showAddFabricDialog}
+          onClose={() => setShowAddFabricDialog(false)}
         />
         </div>
       </div>
@@ -381,7 +388,7 @@ function FabricCard({ fabric, onTogglePin, onUseFabric, onEdit, onDelete }: Fabr
 }
 
 // Enhanced empty state component
-function EmptyState() {
+function EmptyState({ onAddFabric }: { onAddFabric: () => void }) {
   const { t } = useLanguage();
   
   return (
@@ -413,13 +420,13 @@ function EmptyState() {
       </p>
       
       <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-        <Link 
-          to="/add"
+        <button 
+          onClick={onAddFabric}
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 rounded-lg flex items-center gap-2 transition-all transform hover:scale-105 shadow-lg"
         >
           <Plus className="w-5 h-5" />
           {t('fabrics.addFabric')}
-        </Link>
+        </button>
         
         <div className="flex gap-2">
           <div className="w-3 h-3 bg-purple-400 rounded-full animate-pulse"></div>
