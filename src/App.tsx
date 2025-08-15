@@ -3,6 +3,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from './store/authStore';
 import { useFabricStore } from './store/fabricStore';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { useEffect } from 'react';
+import './App.css';
 import Dashboard from './pages/Dashboard';
 import AddFabric from './pages/AddFabric';
 import EditFabric from './pages/EditFabric';
@@ -51,8 +53,17 @@ function App() {
   const { isAuthenticated } = useAuthStore();
   const { isDarkMode } = useFabricStore();
   
+  // Apply dark mode to document element
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+  
   return (
-    <div className={isDarkMode ? 'dark' : ''}>
+    <div>
       <LanguageProvider>
         <QueryClientProvider client={queryClient}>
           <Router>

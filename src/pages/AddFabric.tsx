@@ -23,7 +23,7 @@ export default function AddFabric() {
   }));
   const { currentUser, isAuthenticated } = useAuthStore();
   
-  console.log('AddFabric component rendered', { isAuthenticated, currentUser });
+  console.log('AddFabric component rendered', { isAuthenticated, currentUser, isDarkMode });
   
   // Simple test - just show a basic page first
   if (!isAuthenticated || !currentUser) {
@@ -98,27 +98,32 @@ export default function AddFabric() {
   console.log('Rendering AddFabric form for user:', currentUser.username);
 
   return (
-    <div className={`min-h-screen transition-colors ${isDarkMode ? 'dark bg-gradient-to-br from-gray-900 to-gray-800' : 'bg-gradient-to-br from-blue-50 to-indigo-100'}`}>
-      <div className="min-h-screen bg-white/30 dark:bg-black/30 backdrop-blur-sm p-2 sm:p-4">
+    <div className="min-h-screen bg-blue-100">
+      {/* Debug test div */}
+      <div className="fixed top-4 left-4 bg-red-500 text-white p-2 rounded z-50">
+        AddFabric Component Loaded - User: {currentUser.username}
+      </div>
+      
+      <div className="min-h-screen p-4">
         <div className="max-w-2xl mx-auto">
           <div className="mb-6">
             <button 
               onClick={() => navigate('/')}
-              className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4"
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
             >
               <ArrowLeft className="w-5 h-5" />
               Back to Collection
             </button>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Add New Fabric</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Add New Fabric</h1>
+            <p className="text-sm text-gray-600 mt-2">
               Logged in as: {currentUser.username}
             </p>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
                   Fabric Photo
                 </label>
                 <ImageUpload onImageSelect={handleImageSelect} />
@@ -126,7 +131,7 @@ export default function AddFabric() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                     Fabric Name *
                   </label>
                   <input
@@ -136,13 +141,13 @@ export default function AddFabric() {
                     required
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder="e.g., Soft Cotton Blend"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-2">
                     Fabric Type *
                   </label>
                   <select
@@ -151,7 +156,7 @@ export default function AddFabric() {
                     required
                     value={formData.type}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   >
                     <option value="">Select type...</option>
                     <option value="Cotton">Cotton</option>
@@ -168,7 +173,7 @@ export default function AddFabric() {
               </div>
 
               <div>
-                <label htmlFor="color" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label htmlFor="color" className="block text-sm font-medium text-gray-700 mb-2">
                   Color/Pattern
                 </label>
                 <input
@@ -177,14 +182,14 @@ export default function AddFabric() {
                   name="color"
                   value={formData.color}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder="e.g., Navy Blue, Floral Print"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                  <label htmlFor="yardsTotal" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="yardsTotal" className="block text-sm font-medium text-gray-700 mb-2">
                     Total Yards
                   </label>
                   <input
@@ -195,12 +200,12 @@ export default function AddFabric() {
                     min="0"
                     value={formData.yardsTotal}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="yardsLeft" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="yardsLeft" className="block text-sm font-medium text-gray-700 mb-2">
                     Yards Left
                   </label>
                   <input
@@ -211,12 +216,12 @@ export default function AddFabric() {
                     min="0"
                     value={formData.yardsLeft}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="cost" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="cost" className="block text-sm font-medium text-gray-700 mb-2">
                     Cost ($)
                   </label>
                   <input
@@ -227,13 +232,13 @@ export default function AddFabric() {
                     min="0"
                     value={formData.cost}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
                   Notes
                 </label>
                 <textarea
@@ -242,7 +247,7 @@ export default function AddFabric() {
                   rows={3}
                   value={formData.notes}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder="Any additional notes about this fabric..."
                 />
               </div>
@@ -258,7 +263,7 @@ export default function AddFabric() {
                 <button
                   type="button"
                   onClick={() => navigate('/')}
-                  className="border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-700 dark:text-gray-200 px-6 py-3 rounded-lg font-medium transition-colors"
+                  className="border border-gray-300 hover:border-gray-400 text-gray-700 px-6 py-3 rounded-lg font-medium transition-colors"
                 >
                   Cancel
                 </button>
