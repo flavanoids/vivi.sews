@@ -221,7 +221,7 @@ If you want to use a different port instead of 8473:
 
 **Admin account:**
 - Username: `ADMIN`
-- Password: `pineda0322`
+- Password: `ADMIN`
 
 **⚠️ Change this password right away after you first log in!**
 

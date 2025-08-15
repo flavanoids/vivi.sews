@@ -78,7 +78,7 @@ const defaultAdmin: User = {
   id: 'admin-001',
   email: 'admin@vivisews.com',
   username: 'ADMIN',
-  password: 'pineda0322', // In production, this would be hashed
+        password: 'ADMIN', // In production, this would be hashed
   role: 'admin',
   status: 'active',
   language: 'en',

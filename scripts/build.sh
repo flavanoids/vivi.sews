@@ -214,7 +214,7 @@ main() {
     echo ""
     echo -e "${YELLOW}Default admin credentials:${NC}"
     echo -e "  Username: ADMIN"
-    echo -e "  Password: pineda0322"
+    echo -e "  Password: ADMIN"
     echo -e "${YELLOW}⚠️  IMPORTANT: Change the default password after first login!${NC}"
 }
 

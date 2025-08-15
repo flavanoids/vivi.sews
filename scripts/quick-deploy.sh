@@ -57,7 +57,7 @@ if curl -f http://localhost:8473/health > /dev/null 2>&1; then
     echo ""
     echo -e "${YELLOW}Default admin credentials:${NC}"
     echo -e "  Username: ADMIN"
-    echo -e "  Password: pineda0322"
+    echo -e "  Password: ADMIN"
     echo ""
     echo -e "${BLUE}Useful commands:${NC}"
     echo -e "  View logs: docker-compose logs -f"

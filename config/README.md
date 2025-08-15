@@ -10,7 +10,7 @@ This directory contains configuration files for demo credentials used in the viv
 
 ### Admin Account
 - **Username**: ADMIN
-- **Password**: pineda0322
+- **Password**: ADMIN
 - **Email**: admin@vivisews.com
 - **Role**: admin
 - **Access**: Full system access, user management, admin dashboard
