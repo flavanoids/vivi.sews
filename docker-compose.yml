@@ -1,4 +1,26 @@
 services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: vivisews-postgres
+    environment:
+      POSTGRES_DB: vivisews
+      POSTGRES_USER: vivisews
+      POSTGRES_PASSWORD: vivisews_prod_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - vivisews-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vivisews -d vivisews"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   vivisews:
     build: .
     container_name: vivisews-app
@@ -7,10 +29,14 @@ services:
     restart: unless-stopped
     environment:
       - NODE_ENV=production
+      - DATABASE_URL=postgresql://vivisews:vivisews_prod_password@postgres:5432/vivisews
     networks:
       - vivisews-network
     volumes:
       - vivisews-logs:/var/log/nginx
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8473/health"]
       interval: 30s
@@ -23,5 +49,7 @@ networks:
     driver: bridge
 
 volumes:
+  postgres_data:
+    driver: local
   vivisews-logs:
     driver: local

@@ -19,6 +19,7 @@ This project was developed using [Cursor](https://cursor.sh), an AI-powered code
 - **Fabric Inventory** - Detailed fabric management with yardage tracking, fiber content analysis, and cost monitoring
 - **Multi-User Support** - Isolated user accounts with separate data storage and access controls
 - **Administrative Interface** - User management and system configuration for multi-user deployments
+- **Data Persistence** - PostgreSQL database ensures all data persists across container updates and restarts
 
 ## Security Implementation
 
@@ -27,6 +28,72 @@ The application implements several security measures for multi-user environments
 - Account lockout mechanism after excessive failed attempts (15-minute duration)
 - Security headers implementation to prevent common web vulnerabilities
 - Comprehensive input validation and sanitization
+
+## Data Persistence
+
+### Database Setup
+
+Vivisews uses **PostgreSQL** for persistent data storage, ensuring that all user data, fabrics, projects, and patterns are preserved across container updates and restarts.
+
+**What's Persisted:**
+- ✅ User accounts and authentication data
+- ✅ Fabric inventory and usage history
+- ✅ Project details and materials
+- ✅ Pattern collections
+- ✅ Application settings and preferences
+
+**Database Volumes:**
+- **Development**: `postgres_data_dev` - Local PostgreSQL data
+- **Production**: `postgres_data` - Production PostgreSQL data
+
+### Backup and Recovery
+
+**Development Backups:**
+```bash
+# Create backup
+./scripts/dev.sh backup
+
+# Restore from backup
+./scripts/dev.sh restore <backup_file>
+```
+
+**Production Backups:**
+```bash
+# Create full backup (database + application)
+./scripts/backup.sh full
+
+# Create database-only backup
+./scripts/backup.sh database
+
+# List available backups
+./scripts/backup.sh list
+
+# Restore from backup
+./scripts/backup.sh restore <backup_file>
+
+# Clean up old backups (30+ days)
+./scripts/backup.sh cleanup
+```
+
+### Database Management
+
+**Development Database Access:**
+```bash
+# Connect to PostgreSQL
+./scripts/dev.sh db
+
+# View database logs
+docker-compose -f docker-compose.dev.yml logs postgres
+```
+
+**Production Database Access:**
+```bash
+# Connect to PostgreSQL
+docker-compose exec postgres psql -U vivisews -d vivisews
+
+# View database logs
+docker-compose logs postgres
+```
 
 ## Installation
 
@@ -48,6 +115,7 @@ Prerequisites: Docker and Docker Compose
 3. **Access Application**
    - Local access: http://localhost:8473
    - Network access: http://your-server-ip:8473
+   - Database: localhost:5432
 
 **Docker Management Commands:**
 ```bash
@@ -187,6 +255,7 @@ Create a `.env` file in the project root for customization:
 NODE_ENV=production
 VITE_APP_TITLE=Vivisews
 VITE_APP_VERSION=1.0.0
+DATABASE_URL=postgresql://vivisews:vivisews_prod_password@postgres:5432/vivisews
 ```
 
 ### Nginx Configuration
@@ -243,6 +312,9 @@ To modify the default port (8473):
 # Access container shell
 ./scripts/dev.sh shell
 
+# Access database
+./scripts/dev.sh db
+
 # Rebuild development container
 ./scripts/dev.sh build
 
@@ -252,70 +324,65 @@ To modify the default port (8473):
 
 **Development Features:**
 - Hot reloading with Vite development server
-- Source code mounted for live editing
-- Containerized environment for consistency
-- No local Node.js installation required
-
-**Project Architecture:**
-```
-vivisews/
-├── src/
-│   ├── components/     # Reusable UI components
-│   ├── pages/         # Route-based page components
-│   ├── store/         # State management (Zustand)
-│   ├── contexts/      # React context providers
-│   └── locales/       # Internationalization
-├── scripts/           # Deployment and build scripts
-├── Dockerfile         # Container configuration
-├── docker-compose.yml # Orchestration configuration
-└── nginx.conf         # Web server configuration
-```
+- PostgreSQL database with persistent storage
+- Database backup and restore functionality
+- Container health checks and monitoring
 
 ## Troubleshooting
 
-### Common Issues
+### Database Connection Issues
 
-1. **Port Conflict Resolution**
+If the application can't connect to the database:
+
+1. **Check if PostgreSQL is running:**
    ```bash
-   # Identify port usage
-   sudo netstat -tulpn | grep 8473
-   
-   # Resolve conflict or configure alternative port
+   docker-compose ps postgres
    ```
 
-2. **Permission Resolution**
+2. **View database logs:**
    ```bash
-   # Fix script permissions
-   chmod +x scripts/*.sh
-   
-   # Configure Docker permissions
-   sudo usermod -aG docker $USER
-   # Re-authenticate user session
+   docker-compose logs postgres
    ```
 
-3. **Service Status Verification**
+3. **Restart the database:**
    ```bash
-   # Check service status
-   sudo systemctl status vivisews
-   
-   # Monitor service logs
-   sudo journalctl -u vivisews -f
+   docker-compose restart postgres
    ```
 
-4. **Docker Build Resolution**
+### Data Loss Prevention
+
+To prevent data loss during updates:
+
+1. **Always backup before major changes:**
    ```bash
-   # Clear Docker cache
-   docker system prune -a
-   
-   # Rebuild without cache
-   docker-compose build --no-cache
+   ./scripts/backup.sh full
    ```
 
-### Log Monitoring
+2. **Use the development environment for testing:**
+   ```bash
+   ./scripts/dev.sh start
+   ```
 
-- **Docker Logs**: `docker-compose logs -f`
-- **System Logs**: `sudo journalctl -u vivisews -f`
-- **Nginx Logs**: `sudo tail -f /var/log/nginx/access.log`
+3. **Never use `docker-compose down -v` in production** (this deletes volumes)
+
+### Performance Issues
+
+If the application is slow:
+
+1. **Check database performance:**
+   ```bash
+   docker-compose exec postgres psql -U vivisews -d vivisews -c "SELECT * FROM pg_stat_activity;"
+   ```
+
+2. **Monitor resource usage:**
+   ```bash
+   docker stats
+   ```
+
+3. **Check application logs:**
+   ```bash
+   docker-compose logs vivisews
+   ```
 
 ## License
 
