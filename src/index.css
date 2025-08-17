@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Remove any default margins and padding that could cause borders */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
 @layer utilities {
   .line-clamp-1 {
     overflow: hidden;
