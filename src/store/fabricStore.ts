@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { useAuthStore } from './authStore';
+import { apiService } from '../services/api.js';
 
 export interface UsageEntry {
   id: string;
@@ -273,104 +272,92 @@ const initialPatterns: Pattern[] = [
   }
 ];
 
-export const useFabricStore = create<FabricStore>()(
-  persist(
-    (set, get) => ({
-      fabrics: initialFabrics,
-      projects: initialProjects,
-      patterns: initialPatterns,
-      usageHistory: [],
-      isDarkMode: false,
-      searchTerm: '',
-      filterType: '',
-      projectSearchTerm: '',
-      projectFilterStatus: '',
-      patternSearchTerm: '',
-      patternFilterCategory: '',
+export const useFabricStore = create<FabricStore>()((set, get) => ({
+  fabrics: [],
+  projects: [],
+  patterns: [],
+  usageHistory: [],
+  isDarkMode: false,
+  searchTerm: '',
+  filterType: '',
+  projectSearchTerm: '',
+  projectFilterStatus: '',
+  patternSearchTerm: '',
+  patternFilterCategory: '',
       
       // Fabric methods
-      addFabric: (fabricData) => {
-        const currentUser = useAuthStore.getState().currentUser;
-        if (!currentUser) {
-          throw new Error('User not authenticated');
+      addFabric: async (fabricData) => {
+        try {
+          const response = await apiService.createFabric(fabricData);
+          set((state) => ({
+            fabrics: [...state.fabrics, response.fabric]
+          }));
+          return { success: true, message: response.message };
+        } catch (error) {
+          return { success: false, message: error.message || 'Failed to add fabric' };
         }
-        
-        const newFabric: FabricEntry = {
-          ...fabricData,
-          id: Date.now().toString(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          userId: currentUser.id,
-        };
-        
-        set((state) => ({
-          fabrics: [...state.fabrics, newFabric]
-        }));
       },
       
-      updateFabric: (id, updates) => {
-        const currentUser = useAuthStore.getState().currentUser;
-        if (!currentUser) return;
-        
-        set((state) => ({
-          fabrics: state.fabrics.map((fabric) =>
-            fabric.id === id && fabric.userId === currentUser.id
-              ? { ...fabric, ...updates, updatedAt: new Date().toISOString() }
-              : fabric
-          )
-        }));
+      updateFabric: async (id, updates) => {
+        try {
+          const response = await apiService.updateFabric(id, updates);
+          set((state) => ({
+            fabrics: state.fabrics.map((fabric) =>
+              fabric.id === id ? response.fabric : fabric
+            )
+          }));
+          return { success: true, message: response.message };
+        } catch (error) {
+          return { success: false, message: error.message || 'Failed to update fabric' };
+        }
       },
       
-      deleteFabric: (id) => {
-        const currentUser = useAuthStore.getState().currentUser;
-        if (!currentUser) return;
-        
-        set((state) => ({
-          fabrics: state.fabrics.filter((fabric) => 
-            fabric.id !== id || fabric.userId !== currentUser.id
-          )
-        }));
+      deleteFabric: async (id) => {
+        try {
+          await apiService.deleteFabric(id);
+          set((state) => ({
+            fabrics: state.fabrics.filter((fabric) => fabric.id !== id)
+          }));
+          return { success: true, message: 'Fabric deleted successfully' };
+        } catch (error) {
+          return { success: false, message: error.message || 'Failed to delete fabric' };
+        }
       },
       
-      togglePin: (id) => {
-        const currentUser = useAuthStore.getState().currentUser;
-        if (!currentUser) return;
-        
-        set((state) => ({
-          fabrics: state.fabrics.map((fabric) =>
-            fabric.id === id && fabric.userId === currentUser.id
-              ? { ...fabric, isPinned: !fabric.isPinned, updatedAt: new Date().toISOString() }
-              : fabric
-          )
-        }));
+      togglePin: async (id) => {
+        try {
+          const response = await apiService.toggleFabricPin(id);
+          set((state) => ({
+            fabrics: state.fabrics.map((fabric) =>
+              fabric.id === id ? { ...fabric, is_pinned: response.is_pinned } : fabric
+            )
+          }));
+          return { success: true, message: response.message };
+        } catch (error) {
+          return { success: false, message: error.message || 'Failed to toggle pin' };
+        }
       },
       
-      recordUsage: (fabricId, yardsUsed, projectName, notes) => {
-        const currentUser = useAuthStore.getState().currentUser;
-        if (!currentUser) return;
-        
-        const newUsage: UsageEntry = {
-          id: Date.now().toString(),
-          fabricId,
-          yardsUsed,
-          projectName,
-          usageDate: new Date().toISOString(),
-          notes,
-          userId: currentUser.id,
-        };
-        
-        set((state) => ({
-          usageHistory: [...state.usageHistory, newUsage],
-          fabrics: state.fabrics.map((fabric) =>
-            fabric.id === fabricId && fabric.userId === currentUser.id
-              ? { 
-                  ...fabric, 
-                  yardsLeft: Math.max(0, fabric.yardsLeft - yardsUsed),
-                  updatedAt: new Date().toISOString()
-                }
-              : fabric
-          )
-        }));
+      recordUsage: async (fabricId, yardsUsed, projectName, notes) => {
+        try {
+          const response = await apiService.recordFabricUsage(fabricId, {
+            yards_used: yardsUsed,
+            project_name: projectName,
+            notes
+          });
+          
+          set((state) => ({
+            fabrics: state.fabrics.map((fabric) =>
+              fabric.id === fabricId
+                ? { ...fabric, total_yards: response.yards_left }
+                : fabric
+            )
+          }));
+          
+          return { success: true, message: response.message };
+        } catch (error) {
+          return { success: false, message: error.message || 'Failed to record usage' };
+        }
       },
       
       // Project methods
@@ -578,29 +565,26 @@ export const useFabricStore = create<FabricStore>()(
       setPatternSearchTerm: (term) => set({ patternSearchTerm: term }),
       setPatternFilterCategory: (category) => set({ patternFilterCategory: category }),
       
-      // User-specific data methods
-      getUserFabrics: (userId) => {
-        const { fabrics } = get();
-        return fabrics.filter(fabric => fabric.userId === userId);
+      // Load data methods
+      loadFabrics: async () => {
+        try {
+          const response = await apiService.getFabrics();
+          set({ fabrics: response.fabrics });
+          return { success: true };
+        } catch (error) {
+          return { success: false, message: error.message || 'Failed to load fabrics' };
+        }
       },
       
-      getUserProjects: (userId) => {
-        const { projects } = get();
-        return projects.filter(project => project.userId === userId);
+      loadUsageHistory: async () => {
+        try {
+          const response = await apiService.getUsageHistory();
+          set({ usageHistory: response.usage_history });
+          return { success: true };
+        } catch (error) {
+          return { success: false, message: error.message || 'Failed to load usage history' };
+        }
       },
-      
-      getUserUsageHistory: (userId) => {
-        const { usageHistory } = get();
-        return usageHistory.filter(usage => usage.userId === userId);
-      },
-      
-      getUserPatterns: (userId) => {
-        const { patterns } = get();
-        return patterns.filter(pattern => pattern.userId === userId);
-      },
-    }),
-    {
-      name: 'fabric-store',
-    }
+    })
   )
 );

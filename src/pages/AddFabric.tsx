@@ -65,22 +65,25 @@ export default function AddFabric() {
     setSelectedImage(file);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    let imageUrl: string | undefined;
-    if (selectedImage) {
-      imageUrl = URL.createObjectURL(selectedImage);
-    }
-    
     try {
-      addFabric({
-        ...formData,
-        isPinned: false,
-        imageUrl,
+      const result = await addFabric({
+        name: formData.name,
+        type: formData.type,
+        color: formData.color,
+        total_yards: formData.yardsTotal,
+        cost_per_yard: formData.cost > 0 ? formData.cost / formData.yardsTotal : null,
+        notes: formData.notes,
       });
-      navigate('/');
+      
+      if (result.success) {
+        navigate('/');
+      } else {
+        alert(result.message || 'Error adding fabric. Please try again.');
+      }
     } catch (error) {
       alert('Error adding fabric. Please try again.');
     } finally {

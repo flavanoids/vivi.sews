@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { apiService } from '../services/api.js';
 
 export interface User {
   id: string;
@@ -76,118 +76,38 @@ interface AuthStore {
 
 // Initialize with empty users array - users will be created through signup
 
-export const useAuthStore = create<AuthStore>()(
-  persist(
-    (set, get) => ({
-      currentUser: null,
-      isAuthenticated: false,
-      isLoading: false,
-      users: [],
-      allowSignups: true,
-      requireApproval: true,
-      maxLoginAttempts: 5,
-      lockoutDuration: 15, // 15 minutes
+export const useAuthStore = create<AuthStore>()((set, get) => ({
+  currentUser: null,
+  isAuthenticated: false,
+  isLoading: false,
+  users: [],
+  allowSignups: true,
+  requireApproval: true,
+  maxLoginAttempts: 5,
+  lockoutDuration: 15, // 15 minutes
       
       login: async (credentials) => {
         set({ isLoading: true });
         
         try {
-          const { users, maxLoginAttempts, lockoutDuration } = get();
-          const user = users.find(u => 
-            u.email.toLowerCase() === credentials.emailOrUsername.toLowerCase() || 
-            u.username.toLowerCase() === credentials.emailOrUsername.toLowerCase()
-          );
-          
-          if (!user) {
-            set({ isLoading: false });
-            return { success: false, message: 'Invalid email/username or password' };
-          }
-          
-          // Check if user is locked out
-          if (user.lockedUntil && new Date(user.lockedUntil) > new Date()) {
-            const remainingMinutes = Math.ceil((new Date(user.lockedUntil).getTime() - new Date().getTime()) / (1000 * 60));
-            set({ isLoading: false });
-            return { 
-              success: false, 
-              message: `Account is temporarily locked. Please try again in ${remainingMinutes} minutes.` 
-            };
-          }
-          
-          if (user.status === 'suspended') {
-            set({ isLoading: false });
-            return { success: false, message: 'Account has been suspended. Please contact admin.' };
-          }
-          
-          if (user.status === 'pending') {
-            set({ isLoading: false });
-            return { success: false, message: 'Account is pending approval. Please wait for admin approval.' };
-          }
-          
-          // Check password
-          if (user.password !== credentials.password) {
-            // Increment failed login attempts
-            const newFailedAttempts = (user.failedLoginAttempts || 0) + 1;
-            const updatedUsers = users.map(u => 
-              u.id === user.id 
-                ? { 
-                    ...u, 
-                    failedLoginAttempts: newFailedAttempts,
-                    lockedUntil: newFailedAttempts >= maxLoginAttempts 
-                      ? new Date(Date.now() + lockoutDuration * 60 * 1000).toISOString()
-                      : undefined
-                  }
-                : u
-            );
-            
-            set({ users: updatedUsers });
-            set({ isLoading: false });
-            
-            if (newFailedAttempts >= maxLoginAttempts) {
-              return { 
-                success: false, 
-                message: `Too many failed login attempts. Account locked for ${lockoutDuration} minutes.` 
-              };
-            }
-            
-            const remainingAttempts = maxLoginAttempts - newFailedAttempts;
-            return { 
-              success: false, 
-              message: `Invalid password. ${remainingAttempts} attempts remaining before account lockout.` 
-            };
-          }
-          
-          // Successful login - reset failed attempts and update last login
-          const updatedUsers = users.map(u => 
-            u.id === user.id 
-              ? { 
-                  ...u, 
-                  lastLogin: new Date().toISOString(),
-                  failedLoginAttempts: 0,
-                  lockedUntil: undefined
-                }
-              : u
-          );
+          const response = await apiService.login(credentials);
+          apiService.setAuthToken(response.token);
           
           set({
-            currentUser: { 
-              ...user, 
-              lastLogin: new Date().toISOString(),
-              failedLoginAttempts: 0,
-              lockedUntil: undefined
-            },
+            currentUser: response.user,
             isAuthenticated: true,
             isLoading: false,
-            users: updatedUsers,
           });
           
           return { success: true, message: 'Login successful' };
         } catch (error) {
           set({ isLoading: false });
-          return { success: false, message: 'Login failed. Please try again.' };
+          return { success: false, message: error.message || 'Login failed. Please try again.' };
         }
       },
       
       logout: () => {
+        apiService.setAuthToken(null);
         set({
           currentUser: null,
           isAuthenticated: false,
@@ -195,59 +115,21 @@ export const useAuthStore = create<AuthStore>()(
       },
       
       signup: async (data) => {
-        const { users, allowSignups, requireApproval } = get();
-        
-        if (!allowSignups) {
-          return { success: false, message: 'Signups are currently disabled' };
+        try {
+          if (data.password !== data.confirmPassword) {
+            return { success: false, message: 'Passwords do not match' };
+          }
+          
+          const response = await apiService.signup({
+            email: data.email,
+            username: data.username,
+            password: data.password
+          });
+          
+          return { success: true, message: response.message };
+        } catch (error) {
+          return { success: false, message: error.message || 'Signup failed. Please try again.' };
         }
-        
-        // Validate input
-        if (data.password !== data.confirmPassword) {
-          return { success: false, message: 'Passwords do not match' };
-        }
-        
-        if (data.password.length < 6) {
-          return { success: false, message: 'Password must be at least 6 characters long' };
-        }
-        
-        // Check if email or username already exists
-        const existingUser = users.find(u => 
-          u.email.toLowerCase() === data.email.toLowerCase() ||
-          u.username.toLowerCase() === data.username.toLowerCase()
-        );
-        
-        if (existingUser) {
-          return { success: false, message: 'Email or username already exists' };
-        }
-        
-        // If this is the first user, make them an admin
-        const isFirstUser = users.length === 0;
-        
-        // Create new user
-        const newUser: User = {
-          id: `user-${Date.now()}`,
-          email: data.email.toLowerCase(),
-          username: data.username,
-          password: data.password, // In production, hash this
-          role: isFirstUser ? 'admin' : 'user',
-          status: isFirstUser ? 'active' : (requireApproval ? 'pending' : 'active'),
-          language: 'en', // Default to English
-          createdAt: new Date().toISOString(),
-          isEmailVerified: isFirstUser, // First user is automatically verified
-          failedLoginAttempts: 0,
-        };
-        
-        set({
-          users: [...users, newUser],
-        });
-        
-        const message = isFirstUser 
-          ? 'Admin account created successfully! You can now log in.'
-          : (requireApproval 
-            ? 'Account created successfully! Please wait for admin approval.'
-            : 'Account created successfully! You can now log in.');
-        
-        return { success: true, message };
       },
       
       changePassword: async (userId, currentPassword, newPassword) => {
@@ -291,64 +173,19 @@ export const useAuthStore = create<AuthStore>()(
       },
       
       updateUserProfile: async (userId, updates) => {
-        const { users, currentUser } = get();
-        
-        if (!currentUser) {
-          return { success: false, message: 'Not authenticated' };
-        }
-        
-        // Only allow users to update their own profile, or admins to update any profile
-        if (currentUser.id !== userId && currentUser.role !== 'admin') {
-          return { success: false, message: 'Unauthorized' };
-        }
-        
-        const user = users.find(u => u.id === userId);
-        if (!user) {
-          return { success: false, message: 'User not found' };
-        }
-        
-        // Validate email format if provided
-        if (updates.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(updates.email)) {
-          return { success: false, message: 'Please enter a valid email address' };
-        }
-        
-        // Check if email is already taken by another user
-        if (updates.email && updates.email.toLowerCase() !== user.email.toLowerCase()) {
-          const emailExists = users.some(u => 
-            u.id !== userId && u.email.toLowerCase() === updates.email!.toLowerCase()
-          );
-          if (emailExists) {
-            return { success: false, message: 'Email address is already in use' };
+        try {
+          const response = await apiService.updateProfile(updates);
+          
+          // Update current user if they updated their own profile
+          const { currentUser } = get();
+          if (currentUser && currentUser.id === userId) {
+            set({ currentUser: { ...currentUser, ...response.user } });
           }
+          
+          return { success: true, message: response.message };
+        } catch (error) {
+          return { success: false, message: error.message || 'Profile update failed' };
         }
-        
-        // Check if username is already taken by another user
-        if (updates.username && updates.username.toLowerCase() !== user.username.toLowerCase()) {
-          const usernameExists = users.some(u => 
-            u.id !== userId && u.username.toLowerCase() === updates.username!.toLowerCase()
-          );
-          if (usernameExists) {
-            return { success: false, message: 'Username is already taken' };
-          }
-        }
-        
-        // Validate username length
-        if (updates.username && updates.username.length < 3) {
-          return { success: false, message: 'Username must be at least 3 characters long' };
-        }
-        
-        const updatedUsers = users.map(u => 
-          u.id === userId ? { ...u, ...updates } : u
-        );
-        
-        set({ users: updatedUsers });
-        
-        // Update current user if they updated their own profile
-        if (currentUser.id === userId) {
-          set({ currentUser: { ...currentUser, ...updates } });
-        }
-        
-        return { success: true, message: 'Profile updated successfully' };
       },
       
       approveUser: (userId) => {
@@ -496,16 +333,6 @@ export const useAuthStore = create<AuthStore>()(
       isUserLocked: (user) => {
         return !!(user.lockedUntil && new Date(user.lockedUntil) > new Date());
       },
-    }),
-    {
-      name: 'auth-store',
-      partialize: (state) => ({
-        currentUser: state.currentUser,
-        isAuthenticated: state.isAuthenticated,
-        users: state.users,
-        allowSignups: state.allowSignups,
-        requireApproval: state.requireApproval,
-      }),
-    }
+    })
   )
 );

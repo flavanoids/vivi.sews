@@ -21,21 +21,52 @@ services:
       retries: 5
     restart: unless-stopped
 
-  vivisews:
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: vivisews-backend
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=vivisews
+      - DB_USER=vivisews
+      - DB_PASSWORD=vivisews_prod_password
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - FRONTEND_URL=http://localhost:8473
+    networks:
+      - vivisews-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend
+  frontend:
     build: .
-    container_name: vivisews-app
+    container_name: vivisews-frontend
     ports:
       - "8473:8473"
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://vivisews:vivisews_prod_password@postgres:5432/vivisews
+      - VITE_API_URL=http://localhost:3001/api
     networks:
       - vivisews-network
     volumes:
       - vivisews-logs:/var/log/nginx
     depends_on:
-      postgres:
+      backend:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8473/health"]

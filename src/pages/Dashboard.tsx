@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, Plus, Heart, Scissors, Moon, Sun, FolderOpen, User, Shield, LogOut, FileText, Sparkles, Palette, Zap } from 'lucide-react';
 import { useFabricStore, type FabricEntry } from '../store/fabricStore';
@@ -16,13 +16,14 @@ export default function Dashboard() {
   const { isDarkMode, toggleDarkMode } = useFabricStore();
   const { t } = useLanguage();
   const { 
-    getUserFabrics,
+    fabrics,
     searchTerm, 
     setSearchTerm,
     filterType,
     setFilterType,
     togglePin,
     deleteFabric,
+    loadFabrics,
   } = useFabricStore();
   
   const [usageDialogFabric, setUsageDialogFabric] = useState<FabricEntry | null>(null);
@@ -30,22 +31,27 @@ export default function Dashboard() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showAddFabricDialog, setShowAddFabricDialog] = useState(false);
 
-  // Get user-specific fabrics
-  const userFabrics = currentUser ? getUserFabrics(currentUser.id) : [];
+  // Load fabrics when component mounts or user changes
+  useEffect(() => {
+    if (currentUser) {
+      loadFabrics();
+    }
+  }, [currentUser, loadFabrics]);
 
-  const filteredFabrics = userFabrics.filter(fabric => {
+  // Filter fabrics
+  const filteredFabrics = fabrics.filter(fabric => {
     const matchesSearch = 
       fabric.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      fabric.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      fabric.color.toLowerCase().includes(searchTerm.toLowerCase());
+      fabric.type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      fabric.color?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesFilter = !filterType || fabric.type === filterType;
     
     return matchesSearch && matchesFilter;
   });
 
-  const pinnedFabrics = filteredFabrics.filter(f => f.isPinned);
-  const otherFabrics = filteredFabrics.filter(f => !f.isPinned);
+  const pinnedFabrics = filteredFabrics.filter(f => f.is_pinned);
+  const otherFabrics = filteredFabrics.filter(f => !f.is_pinned);
 
   const handleDeleteConfirm = () => {
     if (deleteDialogFabric) {
