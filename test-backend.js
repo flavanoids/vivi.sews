@@ -1,5 +1,5 @@
 // Simple test script to verify backend API functionality
-const fetch = require('node-fetch');
+// Using built-in fetch (Node.js 18+)
 
 const API_BASE_URL = 'http://localhost:3001/api';
 

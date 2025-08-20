@@ -587,4 +587,3 @@ export const useFabricStore = create<FabricStore>()((set, get) => ({
       },
     })
   )
-);

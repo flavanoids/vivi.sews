@@ -116,15 +116,11 @@ export const signup = async (req, res) => {
       return res.status(409).json({ message: 'Email or username already exists' });
     }
 
-    // Check if this is the first user (make them admin)
-    const userCount = await pool.query('SELECT COUNT(*) FROM users');
-    const isFirstUser = parseInt(userCount.rows[0].count) === 0;
-
     // Hash password
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Create user
+    // Create user (all new users are pending approval)
     const newUser = await pool.query(
       `INSERT INTO users (id, email, username, password_hash, role, status, is_email_verified) 
        VALUES ($1, $2, $3, $4, $5, $6, $7) 
@@ -134,17 +130,15 @@ export const signup = async (req, res) => {
         email.toLowerCase(),
         username.toLowerCase(),
         hashedPassword,
-        isFirstUser ? 'admin' : 'user',
-        isFirstUser ? 'active' : 'pending',
-        isFirstUser
+        'user',
+        'pending',
+        false
       ]
     );
 
     const user = newUser.rows[0];
 
-    const message = isFirstUser 
-      ? 'Admin account created successfully! You can now log in.'
-      : 'Account created successfully! Please wait for admin approval.';
+    const message = 'Account created successfully! Please wait for admin approval.';
 
     res.status(201).json({
       message,
@@ -229,6 +223,64 @@ export const updateProfile = async (req, res) => {
 
   } catch (error) {
     console.error('Update profile error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// Admin endpoints
+export const getPendingUsers = async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, email, username, role, status, created_at FROM users WHERE status = $1 ORDER BY created_at DESC',
+      ['pending']
+    );
+
+    res.json({ pendingUsers: result.rows });
+  } catch (error) {
+    console.error('Get pending users error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const approveUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const result = await pool.query(
+      'UPDATE users SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, email, username, status',
+      ['active', userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({ 
+      message: 'User approved successfully',
+      user: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Approve user error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const rejectUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const result = await pool.query(
+      'DELETE FROM users WHERE id = $1 AND status = $2 RETURNING id',
+      [userId, 'pending']
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'User not found or not pending' });
+    }
+
+    res.json({ message: 'User rejected and deleted successfully' });
+  } catch (error) {
+    console.error('Reject user error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };

@@ -136,6 +136,20 @@ INSERT INTO app_settings (id, allow_signups, require_approval, max_login_attempt
 VALUES ('default', TRUE, TRUE, 5, 15)
 ON CONFLICT (id) DO NOTHING;
 
+-- Create default ADMIN account
+INSERT INTO users (id, email, username, password_hash, role, status, language, created_at, is_email_verified)
+VALUES (
+    'admin-default',
+    'admin@vivisews.com',
+    'ADMIN',
+    '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', -- bcrypt hash for 'ADMIN'
+    'admin',
+    'active',
+    'en',
+    CURRENT_TIMESTAMP,
+    TRUE
+) ON CONFLICT (id) DO NOTHING;
+
 -- Create a function to update the updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$

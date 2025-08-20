@@ -55,7 +55,9 @@ interface AuthStore {
   updateUserProfile: (userId: string, updates: { email?: string; username?: string }) => Promise<{ success: boolean; message: string }>;
   
   // Admin methods
-  approveUser: (userId: string) => void;
+  getPendingUsers: () => Promise<{ success: boolean; data?: any; message?: string }>;
+  approveUser: (userId: string) => Promise<{ success: boolean; message: string }>;
+  rejectUser: (userId: string) => Promise<{ success: boolean; message: string }>;
   suspendUser: (userId: string) => void;
   activateUser: (userId: string) => void;
   deleteUser: (userId: string) => void;
@@ -187,13 +189,33 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
           return { success: false, message: error.message || 'Profile update failed' };
         }
       },
-      
-      approveUser: (userId) => {
-        const { users } = get();
-        const updatedUsers = users.map(u => 
-          u.id === userId ? { ...u, status: 'active' as const } : u
-        );
-        set({ users: updatedUsers });
+
+      // Admin methods
+      getPendingUsers: async () => {
+        try {
+          const response = await apiService.getPendingUsers();
+          return { success: true, data: response.pendingUsers };
+        } catch (error) {
+          return { success: false, message: error.message || 'Failed to get pending users' };
+        }
+      },
+
+      approveUser: async (userId) => {
+        try {
+          const response = await apiService.approveUser(userId);
+          return { success: true, message: response.message };
+        } catch (error) {
+          return { success: false, message: error.message || 'Failed to approve user' };
+        }
+      },
+
+      rejectUser: async (userId) => {
+        try {
+          const response = await apiService.rejectUser(userId);
+          return { success: true, message: response.message };
+        } catch (error) {
+          return { success: false, message: error.message || 'Failed to reject user' };
+        }
       },
       
       suspendUser: (userId) => {
@@ -335,4 +357,3 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
       },
     })
   )
-);

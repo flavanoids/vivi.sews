@@ -82,6 +82,23 @@ class ApiService {
     });
   }
 
+  // Admin endpoints
+  async getPendingUsers() {
+    return this.request('/auth/pending-users');
+  }
+
+  async approveUser(userId) {
+    return this.request(`/auth/approve-user/${userId}`, {
+      method: 'POST',
+    });
+  }
+
+  async rejectUser(userId) {
+    return this.request(`/auth/reject-user/${userId}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Fabric endpoints
   async getFabrics() {
     return this.request('/fabrics');
