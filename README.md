@@ -2,6 +2,14 @@
 
 A comprehensive sewing project management application designed to track fabric inventory, pattern collections, and project workflows. Built with React and TypeScript, featuring a responsive interface optimized for both desktop and mobile environments.
 
+## 🚀 New Features (Development Branch)
+
+- **Persistent Data Storage**: All user data is now stored in PostgreSQL database
+- **Cross-Device Sync**: Access your fabrics from any device (mobile, desktop, remote)
+- **Secure Authentication**: JWT-based authentication with bcrypt password hashing
+- **RESTful API**: Backend API for reliable data management
+- **Docker Support**: Separate development and production environments
+
 ## 👨‍💻 Created by
 
 **Noe Pineda** - Built with ❤️ for my wife
@@ -107,14 +115,23 @@ Prerequisites: Docker and Docker Compose
    cd vivisews
    ```
 
-2. **Deploy Application**
+2. **Switch to Development Branch (for new features)**
    ```bash
+   git checkout development
+   ```
+
+3. **Deploy Application**
+   ```bash
+   # For development environment
+   docker-compose -f docker-compose.dev.yml up -d
+   
+   # For production environment
    docker-compose up -d
    ```
 
-3. **Access Application**
-   - Local access: http://localhost:8473
-   - Network access: http://your-server-ip:8473
+4. **Access Application**
+   - Development: http://localhost:5173 (Frontend) / http://localhost:3001 (API)
+   - Production: http://localhost:8473 (Frontend) / http://localhost:3001 (API)
    - Database: localhost:5432
 
 **Docker Management Commands:**
