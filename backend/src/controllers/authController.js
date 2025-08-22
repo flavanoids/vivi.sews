@@ -10,9 +10,9 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: 'Email/username and password are required' });
     }
 
-    // Find user by email or username
+    // Find user by email or username (case-insensitive)
     const result = await pool.query(
-      'SELECT * FROM users WHERE email = $1 OR username = $1',
+      'SELECT * FROM users WHERE LOWER(email) = $1 OR LOWER(username) = $1',
       [emailOrUsername.toLowerCase()]
     );
 
@@ -106,9 +106,9 @@ export const signup = async (req, res) => {
       return res.status(400).json({ message: 'Password must be at least 6 characters long' });
     }
 
-    // Check if email or username already exists
+    // Check if email or username already exists (case-insensitive)
     const existingUser = await pool.query(
-      'SELECT id FROM users WHERE email = $1 OR username = $2',
+      'SELECT id FROM users WHERE LOWER(email) = $1 OR LOWER(username) = $2',
       [email.toLowerCase(), username.toLowerCase()]
     );
 
@@ -177,9 +177,9 @@ export const updateProfile = async (req, res) => {
     let paramCount = 1;
 
     if (email) {
-      // Check if email is already taken
+      // Check if email is already taken (case-insensitive)
       const emailCheck = await pool.query(
-        'SELECT id FROM users WHERE email = $1 AND id != $2',
+        'SELECT id FROM users WHERE LOWER(email) = $1 AND id != $2',
         [email.toLowerCase(), req.user.id]
       );
       if (emailCheck.rows.length > 0) {
@@ -189,9 +189,9 @@ export const updateProfile = async (req, res) => {
     }
 
     if (username) {
-      // Check if username is already taken
+      // Check if username is already taken (case-insensitive)
       const usernameCheck = await pool.query(
-        'SELECT id FROM users WHERE username = $1 AND id != $2',
+        'SELECT id FROM users WHERE LOWER(username) = $1 AND id != $2',
         [username.toLowerCase(), req.user.id]
       );
       if (usernameCheck.rows.length > 0) {

@@ -142,7 +142,7 @@ VALUES (
     'admin-default',
     'admin@vivisews.com',
     'ADMIN',
-    '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', -- bcrypt hash for 'ADMIN'
+    '$2b$10$XWsJlJoeL.dGd/2qLFWJJ.l48ZH0RImYkR7sst2aoeOzDplHGdGQ6', -- bcrypt hash for 'ADMIN'
     'admin',
     'active',
     'en',
