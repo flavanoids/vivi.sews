@@ -147,7 +147,8 @@ class ApiService {
 
   // Upload endpoints
   async uploadFabricImage(formData) {
-    const url = `${this.baseURL.replace('/api', '')}/api/upload/fabric`;
+    const baseUrl = this.baseURL.replace('/api', '');
+    const url = `${baseUrl}/api/upload/fabric`;
     const token = this.getAuthToken();
 
     const config = {
@@ -180,7 +181,8 @@ class ApiService {
   }
 
   async uploadProjectImage(formData) {
-    const url = `${this.baseURL.replace('/api', '')}/api/upload/project`;
+    const baseUrl = this.baseURL.replace('/api', '');
+    const url = `${baseUrl}/api/upload/project`;
     const token = this.getAuthToken();
 
     const config = {
