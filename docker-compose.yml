@@ -52,14 +52,18 @@ services:
 
   # Frontend
   frontend:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://127.0.0.1:3001/api
     container_name: vivisews-frontend
     ports:
       - "8473:8473"
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - VITE_API_URL=http://localhost:3001/api
+      - VITE_API_URL=http://127.0.0.1:3001/api
     networks:
       - vivisews-network
     volumes:
