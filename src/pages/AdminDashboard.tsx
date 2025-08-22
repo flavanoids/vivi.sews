@@ -14,7 +14,7 @@ interface PendingUser {
 }
 
 export default function AdminDashboard() {
-  console.log('AdminDashboard: Component rendering');
+  console.log('AdminDashboard: Component rendering - SIMPLIFIED VERSION');
   
   try {
     const navigate = useNavigate();

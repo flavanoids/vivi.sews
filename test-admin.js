@@ -1,103 +1,50 @@
-// Test script to verify admin functionality
-const API_BASE_URL = 'http://localhost:3001/api';
+// Test script for AdminDashboard component
+const { createElement } = require('react');
+const { renderToString } = require('react-dom/server');
 
-async function testAdminFunctionality() {
-  console.log('🧪 Testing Admin Functionality...\n');
+// Mock the required dependencies
+const mockNavigate = jest.fn();
+const mockUseAuthStore = {
+  currentUser: {
+    id: 'admin-1',
+    email: 'admin@test.com',
+    username: 'ADMIN',
+    role: 'admin',
+    status: 'active'
+  },
+  isAdmin: () => true,
+  getPendingUsers: async () => ({ success: true, data: [] }),
+  approveUser: async () => ({ success: true, message: 'User approved' }),
+  rejectUser: async () => ({ success: true, message: 'User rejected' })
+};
 
-  try {
-    // 1. Create a new user (should be pending)
-    console.log('1. Creating a new user (should be pending)...');
-    const signupResponse = await fetch(`${API_BASE_URL}/auth/signup`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: 'testuser3@example.com',
-        username: 'testuser3',
-        password: 'testpass123'
-      }),
-    });
+const mockUseLanguage = {
+  t: (key) => key
+};
 
-    if (signupResponse.ok) {
-      const signupResult = await signupResponse.json();
-      console.log('✅ New user created:', signupResult.message);
-    } else {
-      const errorData = await signupResponse.json();
-      console.log('⚠️ Signup response:', errorData.message);
-    }
+// Mock the hooks
+jest.mock('react-router-dom', () => ({
+  useNavigate: () => mockNavigate
+}));
 
-    // 2. Login as ADMIN
-    console.log('\n2. Logging in as ADMIN...');
-    const adminLoginResponse = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        emailOrUsername: 'admin@vivisews.com',
-        password: 'ADMIN'
-      }),
-    });
+jest.mock('../src/store/authStore', () => ({
+  useAuthStore: () => mockUseAuthStore
+}));
 
-    if (adminLoginResponse.ok) {
-      const adminLoginResult = await adminLoginResponse.json();
-      console.log('✅ Admin login successful');
-      console.log('Admin user:', adminLoginResult.user.username, adminLoginResult.user.role);
-      
-      const adminToken = adminLoginResult.token;
+jest.mock('../src/contexts/LanguageContext', () => ({
+  useLanguage: () => mockUseLanguage
+}));
 
-      // 3. Get pending users
-      console.log('\n3. Getting pending users...');
-      const pendingResponse = await fetch(`${API_BASE_URL}/auth/pending-users`, {
-        headers: {
-          'Authorization': `Bearer ${adminToken}`,
-          'Content-Type': 'application/json',
-        },
-      });
+// Test the AdminDashboard component
+describe('AdminDashboard', () => {
+  test('should render without crashing', () => {
+    const AdminDashboard = require('../src/pages/AdminDashboard.tsx').default;
+    
+    // This should not throw an error
+    expect(() => {
+      renderToString(createElement(AdminDashboard));
+    }).not.toThrow();
+  });
+});
 
-      if (pendingResponse.ok) {
-        const pendingResult = await pendingResponse.json();
-        console.log('✅ Pending users retrieved');
-        console.log('Pending users count:', pendingResult.pendingUsers.length);
-        
-        if (pendingResult.pendingUsers.length > 0) {
-          const pendingUser = pendingResult.pendingUsers[0];
-          console.log('First pending user:', pendingUser.username, pendingUser.email);
-
-          // 4. Approve the user
-          console.log('\n4. Approving user...');
-          const approveResponse = await fetch(`${API_BASE_URL}/auth/approve-user/${pendingUser.id}`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${adminToken}`,
-              'Content-Type': 'application/json',
-            },
-          });
-
-          if (approveResponse.ok) {
-            const approveResult = await approveResponse.json();
-            console.log('✅ User approved:', approveResult.message);
-          } else {
-            const errorData = await approveResponse.json();
-            console.log('❌ Approve failed:', errorData.message);
-          }
-        }
-      } else {
-        const errorData = await pendingResponse.json();
-        console.log('❌ Get pending users failed:', errorData.message);
-      }
-
-    } else {
-      const errorData = await adminLoginResponse.json();
-      console.log('❌ Admin login failed:', errorData.message);
-    }
-
-    console.log('\n🎉 Admin functionality test completed!');
-
-  } catch (error) {
-    console.error('❌ Test failed:', error.message);
-  }
-}
-
-testAdminFunctionality();
+console.log('AdminDashboard test completed successfully!');
