@@ -36,23 +36,16 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 // Admin Route Component
 function AdminRoute({ children }: { children: React.ReactNode }) {
-  console.log('AdminRoute: Component rendering');
   const { isAuthenticated, currentUser } = useAuthStore();
   
-  console.log('AdminRoute: isAuthenticated:', isAuthenticated);
-  console.log('AdminRoute: currentUser:', currentUser);
-  
   if (!isAuthenticated) {
-    console.log('AdminRoute: Not authenticated, redirecting to login');
     return <Navigate to="/login" replace />;
   }
   
   if (currentUser?.role !== 'admin') {
-    console.log('AdminRoute: Not admin, redirecting to dashboard');
     return <Navigate to="/" replace />;
   }
   
-  console.log('AdminRoute: User is admin, rendering children');
   return <>{children}</>;
 }
 
