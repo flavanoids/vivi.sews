@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, LogIn, User, Lock } from 'lucide-react';
+import { Eye, EyeOff, LogIn, User, Lock, AlertTriangle } from 'lucide-react';
 import { useAuthStore, type LoginCredentials } from '../store/authStore';
 import { useFabricStore } from '../store/fabricStore';
 
@@ -51,6 +51,28 @@ export default function Login() {
               <div className="text-6xl mb-4">🧵</div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome Back</h1>
               <p className="text-gray-600 dark:text-gray-400">Sign in to your vivi.sews account</p>
+            </div>
+
+            {/* Default Admin Credentials Notice */}
+            <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 rounded-lg">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h3 className="text-sm font-medium text-amber-800 dark:text-amber-200 mb-1">
+                    Default Admin Account
+                  </h3>
+                  <p className="text-sm text-amber-700 dark:text-amber-300 mb-2">
+                    For first-time setup, use these default credentials:
+                  </p>
+                  <div className="bg-amber-100 dark:bg-amber-800/50 p-2 rounded text-xs font-mono text-amber-800 dark:text-amber-200">
+                    <div>Username: <span className="font-semibold">ADMIN</span></div>
+                    <div>Password: <span className="font-semibold">ADMIN</span></div>
+                  </div>
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+                    ⚠️ Please change these credentials immediately after login for security.
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Message */}
