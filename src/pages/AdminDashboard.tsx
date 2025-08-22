@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Check, X, Users, Shield } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
@@ -14,56 +14,113 @@ interface PendingUser {
 }
 
 export default function AdminDashboard() {
+  console.log('AdminDashboard: Component rendering');
+  
   const navigate = useNavigate();
   const { currentUser, isAdmin, getPendingUsers, approveUser, rejectUser } = useAuthStore();
   const { t } = useLanguage();
   
+  console.log('AdminDashboard: currentUser:', currentUser);
+  console.log('AdminDashboard: isAdmin():', isAdmin());
+  
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  const loadPendingUsers = useCallback(async () => {
+    console.log('AdminDashboard: loadPendingUsers called');
+    try {
+      setIsLoading(true);
+      setError(null);
+      const result = await getPendingUsers();
+      console.log('AdminDashboard: getPendingUsers result:', result);
+      if (result.success) {
+        setPendingUsers(result.data || []);
+      } else {
+        setError(result.message || 'Failed to load pending users');
+      }
+    } catch (err) {
+      console.error('Error loading pending users:', err);
+      setError('An unexpected error occurred while loading pending users');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [getPendingUsers]);
+
   useEffect(() => {
-    if (!currentUser || !isAdmin()) {
+    console.log('AdminDashboard: useEffect triggered');
+    console.log('AdminDashboard: currentUser in useEffect:', currentUser);
+    console.log('AdminDashboard: isAdmin() in useEffect:', isAdmin());
+    
+    // Check if user is authenticated and is admin
+    if (!currentUser) {
+      console.log('AdminDashboard: No currentUser, navigating to login');
+      navigate('/login');
+      return;
+    }
+    
+    if (!isAdmin()) {
+      console.log('AdminDashboard: Not admin, navigating to dashboard');
       navigate('/');
       return;
     }
-    loadPendingUsers();
-  }, [currentUser, navigate]);
 
-  const loadPendingUsers = async () => {
-    setIsLoading(true);
-    const result = await getPendingUsers();
-    if (result.success) {
-      setPendingUsers(result.data || []);
-    } else {
-      setMessage({ type: 'error', text: result.message || 'Failed to load pending users' });
-    }
-    setIsLoading(false);
-  };
+    console.log('AdminDashboard: User is admin, loading pending users');
+    // Load pending users
+    loadPendingUsers();
+  }, [currentUser, isAdmin, navigate, loadPendingUsers]);
 
   const handleApprove = async (userId: string) => {
-    const result = await approveUser(userId);
-    if (result.success) {
-      setMessage({ type: 'success', text: result.message });
-      loadPendingUsers(); // Reload the list
-    } else {
-      setMessage({ type: 'error', text: result.message });
-    }
-  };
-
-  const handleReject = async (userId: string) => {
-    if (window.confirm('Are you sure you want to reject this user? This action cannot be undone.')) {
-      const result = await rejectUser(userId);
+    try {
+      const result = await approveUser(userId);
       if (result.success) {
         setMessage({ type: 'success', text: result.message });
         loadPendingUsers(); // Reload the list
       } else {
         setMessage({ type: 'error', text: result.message });
       }
+    } catch (err) {
+      console.error('Error approving user:', err);
+      setMessage({ type: 'error', text: 'An unexpected error occurred while approving user' });
     }
   };
 
-  if (!currentUser || !isAdmin()) {
+  const handleReject = async (userId: string) => {
+    if (window.confirm('Are you sure you want to reject this user? This action cannot be undone.')) {
+      try {
+        const result = await rejectUser(userId);
+        if (result.success) {
+          setMessage({ type: 'success', text: result.message });
+          loadPendingUsers(); // Reload the list
+        } else {
+          setMessage({ type: 'error', text: result.message });
+        }
+      } catch (err) {
+        console.error('Error rejecting user:', err);
+        setMessage({ type: 'error', text: 'An unexpected error occurred while rejecting user' });
+      }
+    }
+  };
+
+  console.log('AdminDashboard: About to render, currentUser:', currentUser, 'isAdmin:', isAdmin());
+
+  // Show loading state while checking authentication
+  if (!currentUser) {
+    console.log('AdminDashboard: Rendering loading state (no currentUser)');
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show access denied if not admin
+  if (!isAdmin()) {
+    console.log('AdminDashboard: Rendering access denied (not admin)');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-center p-8 bg-white rounded-lg shadow-md">
@@ -80,6 +137,7 @@ export default function AdminDashboard() {
     );
   }
 
+  console.log('AdminDashboard: Rendering main admin dashboard');
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-4xl mx-auto p-4">
@@ -107,6 +165,20 @@ export default function AdminDashboard() {
               : 'bg-red-100 text-red-800'
           }`}>
             {message.text}
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 p-4 rounded-lg bg-red-100 text-red-800">
+            <p className="font-medium">Error:</p>
+            <p>{error}</p>
+            <button 
+              onClick={loadPendingUsers}
+              className="mt-2 text-red-600 hover:text-red-800 underline"
+            >
+              Try again
+            </button>
           </div>
         )}
 
