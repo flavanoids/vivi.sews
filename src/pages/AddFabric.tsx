@@ -48,7 +48,7 @@ export default function AddFabric() {
     cost: 0,
     notes: '',
   });
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -61,8 +61,12 @@ export default function AddFabric() {
     }));
   };
 
-  const handleImageSelect = (file: File) => {
-    setSelectedImage(file);
+  const handleImageSelect = (_file: File) => {
+    // File is handled by ImageUpload component
+  };
+
+  const handleImageUpload = (url: string) => {
+    setImageUrl(url);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,9 +78,12 @@ export default function AddFabric() {
         name: formData.name,
         type: formData.type,
         color: formData.color,
-        total_yards: formData.yardsTotal,
-        cost_per_yard: formData.cost > 0 ? formData.cost / formData.yardsTotal : null,
+        yardsTotal: formData.yardsTotal,
+        yardsLeft: formData.yardsTotal,
+        cost: formData.cost,
         notes: formData.notes,
+        imageUrl: imageUrl || undefined,
+        isPinned: false,
       });
       
       if (result.success) {
@@ -116,7 +123,11 @@ export default function AddFabric() {
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   Fabric Photo
                 </label>
-                <ImageUpload onImageSelect={handleImageSelect} />
+                <ImageUpload 
+                  onImageSelect={handleImageSelect}
+                  onImageUpload={handleImageUpload}
+                  uploadType="fabric"
+                />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

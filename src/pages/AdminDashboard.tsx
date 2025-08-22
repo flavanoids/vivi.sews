@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Check, X, Users, Shield } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
-import { useLanguage } from '../contexts/LanguageContext';
+// import { useLanguage } from '../contexts/LanguageContext';
 
 interface PendingUser {
   id: string;
@@ -16,7 +16,7 @@ interface PendingUser {
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { currentUser, isAdmin, getPendingUsers, approveUser, rejectUser } = useAuthStore();
-  const { t } = useLanguage();
+  // const { t } = useLanguage();
   
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);

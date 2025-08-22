@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { apiService } from '../services/api.js';
+import { useAuthStore } from './authStore';
 
 export interface UsageEntry {
   id: string;
@@ -93,11 +94,11 @@ interface FabricStore {
   isDarkMode: boolean;
   
   // Fabric methods
-  addFabric: (fabric: Omit<FabricEntry, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => void;
-  updateFabric: (id: string, updates: Partial<FabricEntry>) => void;
-  deleteFabric: (id: string) => void;
-  togglePin: (id: string) => void;
-  recordUsage: (fabricId: string, yardsUsed: number, projectName: string, notes?: string) => void;
+  addFabric: (fabric: Omit<FabricEntry, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => Promise<{ success: boolean; message?: string }>;
+  updateFabric: (id: string, updates: Partial<FabricEntry>) => Promise<{ success: boolean; message?: string }>;
+  deleteFabric: (id: string) => Promise<{ success: boolean; message?: string }>;
+  togglePin: (id: string) => Promise<{ success: boolean; message?: string }>;
+  recordUsage: (fabricId: string, yardsUsed: number, projectName: string, notes?: string) => Promise<{ success: boolean; message?: string }>;
   
   // Project methods
   addProject: (project: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => void;
@@ -137,140 +138,140 @@ interface FabricStore {
   getUserUsageHistory: (userId: string) => UsageEntry[];
 }
 
-const initialFabrics: FabricEntry[] = [
-  {
-    id: '1',
-    name: 'Soft Cotton Blend',
-    type: 'cotton',
-    color: 'Navy Blue',
-    yardsTotal: 5,
-    yardsLeft: 3.5,
-    cost: 12.99,
-    isPinned: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    userId: 'user-001',
-  },
-  {
-    id: '2',
-    name: 'Floral Print',
-    type: 'cotton',
-    color: 'Pink',
-    yardsTotal: 3,
-    yardsLeft: 2.25,
-    cost: 8.50,
-    isPinned: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    userId: 'user-001',
-  },
-  {
-    id: '3',
-    name: 'Denim Stretch',
-    type: 'denim',
-    color: 'Blue',
-    yardsTotal: 2,
-    yardsLeft: 1.75,
-    cost: 15.99,
-    isPinned: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    userId: 'user-001',
-  },
-];
+// const initialFabrics: FabricEntry[] = [
+//   {
+//     id: '1',
+//     name: 'Soft Cotton Blend',
+//     type: 'cotton',
+//     color: 'Navy Blue',
+//     yardsTotal: 5,
+//     yardsLeft: 3.5,
+//     cost: 12.99,
+//     isPinned: true,
+//     createdAt: new Date().toISOString(),
+//     updatedAt: new Date().toISOString(),
+//     userId: 'user-001',
+//   },
+//   {
+//     id: '2',
+//     name: 'Floral Print',
+//     type: 'cotton',
+//     color: 'Pink',
+//     yardsTotal: 3,
+//     yardsLeft: 2.25,
+//     cost: 8.50,
+//     isPinned: false,
+//     createdAt: new Date().toISOString(),
+//     updatedAt: new Date().toISOString(),
+//     userId: 'user-001',
+//   },
+//   {
+//     id: '3',
+//     name: 'Denim Stretch',
+//     type: 'denim',
+//     color: 'Blue',
+//     yardsTotal: 2,
+//     yardsLeft: 1.75,
+//     cost: 15.99,
+//     isPinned: true,
+//     createdAt: new Date().toISOString(),
+//     updatedAt: new Date().toISOString(),
+//     userId: 'user-001',
+//   },
+// ];
 
-const initialProjects: Project[] = [
-  {
-    id: '1',
-    name: 'Summer Tote Bag',
-    description: 'A spacious tote bag perfect for beach days',
-    status: 'in-progress',
-    materials: [
-      {
-        id: '1',
-        fabricId: '1',
-        fabricName: 'Soft Cotton Blend',
-        fabricType: 'cotton',
-        fabricColor: 'Navy Blue',
-        yardsUsed: 1.5,
-        notes: 'Main body fabric',
-        addedAt: new Date().toISOString(),
-      }
-    ],
-    patterns: [
-      {
-        id: '1',
-        patternId: '1',
-        patternName: 'Classic A-Line Dress',
-        patternDesigner: 'Simplicity',
-        patternCategory: 'dresses',
-        patternDifficulty: 'beginner',
-        addedAt: new Date().toISOString(),
-      }
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    targetDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    userId: 'user-001',
-  },
-  {
-    id: '2',
-    name: 'Floral Dress',
-    description: 'A beautiful summer dress with floral pattern',
-    status: 'planning',
-    materials: [
-      {
-        id: '2',
-        fabricId: '2',
-        fabricName: 'Floral Print',
-        fabricType: 'cotton',
-        fabricColor: 'Pink',
-        yardsUsed: 2.25,
-        notes: 'Main dress fabric',
-        addedAt: new Date().toISOString(),
-      }
-    ],
-    patterns: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    userId: 'user-001',
-  }
-];
+// const initialProjects: Project[] = [
+//   {
+//     id: '1',
+//     name: 'Summer Tote Bag',
+//     description: 'A spacious tote bag perfect for beach days',
+//     status: 'in-progress',
+//     materials: [
+//       {
+//         id: '1',
+//         fabricId: '1',
+//         fabricName: 'Soft Cotton Blend',
+//         fabricType: 'cotton',
+//         fabricColor: 'Navy Blue',
+//         yardsUsed: 1.5,
+//         notes: 'Main body fabric',
+//         addedAt: new Date().toISOString(),
+//       }
+//     ],
+//     patterns: [
+//       {
+//         id: '1',
+//         patternId: '1',
+//         patternName: 'Classic A-Line Dress',
+//         patternDesigner: 'Simplicity',
+//         patternCategory: 'dresses',
+//         patternDifficulty: 'beginner',
+//         addedAt: new Date().toISOString(),
+//       }
+//     ],
+//     createdAt: new Date().toISOString(),
+//     updatedAt: new Date().toISOString(),
+//     targetDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+//     userId: 'user-001',
+//   },
+//   {
+//     id: '2',
+//     name: 'Floral Dress',
+//     description: 'A beautiful summer dress with floral pattern',
+//     status: 'planning',
+//     materials: [
+//       {
+//         id: '2',
+//         fabricId: '2',
+//         fabricName: 'Floral Print',
+//         fabricType: 'cotton',
+//         fabricColor: 'Pink',
+//         yardsUsed: 2.25,
+//         notes: 'Main dress fabric',
+//         addedAt: new Date().toISOString(),
+//       }
+//     ],
+//     patterns: [],
+//     createdAt: new Date().toISOString(),
+//     updatedAt: new Date().toISOString(),
+//     userId: 'user-001',
+//   }
+// ];
 
-const initialPatterns: Pattern[] = [
-  {
-    id: '1',
-    name: 'Classic A-Line Dress',
-    description: 'A timeless A-line dress pattern perfect for beginners',
-    designer: 'Simplicity',
-    patternNumber: 'S1234',
-    category: 'dresses',
-    difficulty: 'beginner',
-    sizeRange: 'XS-XXL (6-20)',
-    fabricRequirements: '2-3 yards of medium weight fabric',
-    notions: 'Zipper, thread, interfacing',
-    isPinned: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    userId: 'user-001',
-  },
-  {
-    id: '2',
-    name: 'Relaxed Fit Blouse',
-    description: 'A comfortable blouse with a relaxed fit',
-    designer: 'McCalls',
-    patternNumber: 'M5678',
-    category: 'tops',
-    difficulty: 'intermediate',
-    sizeRange: 'S-XL (8-16)',
-    fabricRequirements: '1.5-2 yards of lightweight fabric',
-    notions: 'Buttons, thread, interfacing',
-    isPinned: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    userId: 'user-001',
-  }
-];
+// const initialPatterns: Pattern[] = [
+//   {
+//     id: '1',
+//     name: 'Classic A-Line Dress',
+//     description: 'A timeless A-line dress pattern perfect for beginners',
+//     designer: 'Simplicity',
+//     patternNumber: 'S1234',
+//     category: 'dresses',
+//     difficulty: 'beginner',
+//     sizeRange: 'XS-XXL (6-20)',
+//     fabricRequirements: '2-3 yards of medium weight fabric',
+//     notions: 'Zipper, thread, interfacing',
+//     isPinned: true,
+//     createdAt: new Date().toISOString(),
+//     updatedAt: new Date().toISOString(),
+//     userId: 'user-001',
+//   },
+//   {
+//     id: '2',
+//     name: 'Relaxed Fit Blouse',
+//     description: 'A comfortable blouse with a relaxed fit',
+//     designer: 'McCalls',
+//     patternNumber: 'M5678',
+//     category: 'tops',
+//     difficulty: 'intermediate',
+//     sizeRange: 'S-XL (8-16)',
+//     fabricRequirements: '1.5-2 yards of lightweight fabric',
+//     notions: 'Buttons, thread, interfacing',
+//     isPinned: false,
+//     createdAt: new Date().toISOString(),
+//     updatedAt: new Date().toISOString(),
+//     userId: 'user-001',
+//   }
+// ];
 
 export const useFabricStore = create<FabricStore>()((set, get) => ({
   fabrics: [],
@@ -294,7 +295,8 @@ export const useFabricStore = create<FabricStore>()((set, get) => ({
           }));
           return { success: true, message: response.message };
         } catch (error) {
-          return { success: false, message: error.message || 'Failed to add fabric' };
+          const errorMessage = error instanceof Error ? error.message : 'Failed to add fabric';
+          return { success: false, message: errorMessage };
         }
       },
       
@@ -308,7 +310,8 @@ export const useFabricStore = create<FabricStore>()((set, get) => ({
           }));
           return { success: true, message: response.message };
         } catch (error) {
-          return { success: false, message: error.message || 'Failed to update fabric' };
+          const errorMessage = error instanceof Error ? error.message : 'Failed to update fabric';
+          return { success: false, message: errorMessage };
         }
       },
       
@@ -320,7 +323,8 @@ export const useFabricStore = create<FabricStore>()((set, get) => ({
           }));
           return { success: true, message: 'Fabric deleted successfully' };
         } catch (error) {
-          return { success: false, message: error.message || 'Failed to delete fabric' };
+          const errorMessage = error instanceof Error ? error.message : 'Failed to delete fabric';
+          return { success: false, message: errorMessage };
         }
       },
       
@@ -334,7 +338,8 @@ export const useFabricStore = create<FabricStore>()((set, get) => ({
           }));
           return { success: true, message: response.message };
         } catch (error) {
-          return { success: false, message: error.message || 'Failed to toggle pin' };
+          const errorMessage = error instanceof Error ? error.message : 'Failed to toggle pin';
+          return { success: false, message: errorMessage };
         }
       },
       
@@ -356,7 +361,8 @@ export const useFabricStore = create<FabricStore>()((set, get) => ({
           
           return { success: true, message: response.message };
         } catch (error) {
-          return { success: false, message: error.message || 'Failed to record usage' };
+          const errorMessage = error instanceof Error ? error.message : 'Failed to record usage';
+          return { success: false, message: errorMessage };
         }
       },
       
@@ -572,7 +578,8 @@ export const useFabricStore = create<FabricStore>()((set, get) => ({
           set({ fabrics: response.fabrics });
           return { success: true };
         } catch (error) {
-          return { success: false, message: error.message || 'Failed to load fabrics' };
+          const errorMessage = error instanceof Error ? error.message : 'Failed to load fabrics';
+          return { success: false, message: errorMessage };
         }
       },
       
@@ -582,8 +589,26 @@ export const useFabricStore = create<FabricStore>()((set, get) => ({
           set({ usageHistory: response.usage_history });
           return { success: true };
         } catch (error) {
-          return { success: false, message: error.message || 'Failed to load usage history' };
+          const errorMessage = error instanceof Error ? error.message : 'Failed to load usage history';
+          return { success: false, message: errorMessage };
         }
+      },
+      
+      // User-specific data methods
+      getUserFabrics: (userId: string) => {
+        return get().fabrics.filter(fabric => fabric.userId === userId);
+      },
+      
+      getUserProjects: (userId: string) => {
+        return get().projects.filter(project => project.userId === userId);
+      },
+      
+      getUserPatterns: (userId: string) => {
+        return get().patterns.filter(pattern => pattern.userId === userId);
+      },
+      
+      getUserUsageHistory: (userId: string) => {
+        return get().usageHistory.filter(usage => usage.userId === userId);
       },
     })
   )

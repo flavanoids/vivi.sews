@@ -104,7 +104,8 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
           return { success: true, message: 'Login successful' };
         } catch (error) {
           set({ isLoading: false });
-          return { success: false, message: error.message || 'Login failed. Please try again.' };
+          const errorMessage = error instanceof Error ? error.message : 'Login failed. Please try again.';
+          return { success: false, message: errorMessage };
         }
       },
       
@@ -130,7 +131,8 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
           
           return { success: true, message: response.message };
         } catch (error) {
-          return { success: false, message: error.message || 'Signup failed. Please try again.' };
+          const errorMessage = error instanceof Error ? error.message : 'Signup failed. Please try again.';
+          return { success: false, message: errorMessage };
         }
       },
       
@@ -186,7 +188,8 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
           
           return { success: true, message: response.message };
         } catch (error) {
-          return { success: false, message: error.message || 'Profile update failed' };
+          const errorMessage = error instanceof Error ? error.message : 'Profile update failed';
+          return { success: false, message: errorMessage };
         }
       },
 
@@ -196,7 +199,8 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
           const response = await apiService.getPendingUsers();
           return { success: true, data: response.pendingUsers };
         } catch (error) {
-          return { success: false, message: error.message || 'Failed to get pending users' };
+          const errorMessage = error instanceof Error ? error.message : 'Failed to get pending users';
+          return { success: false, message: errorMessage };
         }
       },
 
@@ -205,7 +209,8 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
           const response = await apiService.approveUser(userId);
           return { success: true, message: response.message };
         } catch (error) {
-          return { success: false, message: error.message || 'Failed to approve user' };
+          const errorMessage = error instanceof Error ? error.message : 'Failed to approve user';
+          return { success: false, message: errorMessage };
         }
       },
 
@@ -214,7 +219,8 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
           const response = await apiService.rejectUser(userId);
           return { success: true, message: response.message };
         } catch (error) {
-          return { success: false, message: error.message || 'Failed to reject user' };
+          const errorMessage = error instanceof Error ? error.message : 'Failed to reject user';
+          return { success: false, message: errorMessage };
         }
       },
       

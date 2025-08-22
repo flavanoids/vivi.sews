@@ -144,6 +144,80 @@ class ApiService {
   async getUsageHistory() {
     return this.request('/fabrics/usage/history');
   }
+
+  // Upload endpoints
+  async uploadFabricImage(formData) {
+    const url = `${this.baseURL.replace('/api', '')}/api/upload/fabric`;
+    const token = this.getAuthToken();
+
+    const config = {
+      method: 'POST',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: formData,
+    };
+
+    try {
+      const response = await fetch(url, config);
+      
+      if (response.status === 401) {
+        this.setAuthToken(null);
+        window.location.href = '/login';
+        throw new Error('Authentication required');
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Upload request failed:', error);
+      throw error;
+    }
+  }
+
+  async uploadProjectImage(formData) {
+    const url = `${this.baseURL.replace('/api', '')}/api/upload/project`;
+    const token = this.getAuthToken();
+
+    const config = {
+      method: 'POST',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: formData,
+    };
+
+    try {
+      const response = await fetch(url, config);
+      
+      if (response.status === 401) {
+        this.setAuthToken(null);
+        window.location.href = '/login';
+        throw new Error('Authentication required');
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Upload request failed:', error);
+      throw error;
+    }
+  }
+
+  async deleteImage(filename, type) {
+    return this.request('/upload/file', {
+      method: 'DELETE',
+      body: JSON.stringify({ filename, type }),
+    });
+  }
 }
 
 export const apiService = new ApiService();

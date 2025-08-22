@@ -31,7 +31,7 @@ services:
       - "3001:3001"
     restart: unless-stopped
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_NAME=vivisews
@@ -42,8 +42,7 @@ services:
     networks:
       - vivisews-network
     depends_on:
-      postgres:
-        condition: service_healthy
+      - postgres
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
       interval: 30s
@@ -65,9 +64,9 @@ services:
       - vivisews-network
     volumes:
       - vivisews-logs:/var/log/nginx
+      - uploads_data:/app/uploads
     depends_on:
-      backend:
-        condition: service_healthy
+      - backend
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8473/health"]
       interval: 30s
@@ -83,4 +82,6 @@ volumes:
   postgres_data:
     driver: local
   vivisews-logs:
+    driver: local
+  uploads_data:
     driver: local

@@ -49,6 +49,7 @@ export const createFabric = async (req, res) => {
       total_cost,
       source,
       notes,
+      image_url,
       is_pinned
     } = req.body;
 
@@ -59,8 +60,8 @@ export const createFabric = async (req, res) => {
     const result = await pool.query(
       `INSERT INTO fabrics (
         id, user_id, name, type, fiber_content, weight, color, pattern, 
-        width, total_yards, cost_per_yard, total_cost, source, notes, is_pinned
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+        width, total_yards, cost_per_yard, total_cost, source, notes, image_url, is_pinned
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
       RETURNING *`,
       [
         `fabric-${Date.now()}`,
@@ -77,6 +78,7 @@ export const createFabric = async (req, res) => {
         total_cost || null,
         source || null,
         notes || null,
+        image_url || null,
         is_pinned || false
       ]
     );
@@ -107,6 +109,7 @@ export const updateFabric = async (req, res) => {
       total_cost,
       source,
       notes,
+      image_url,
       is_pinned
     } = req.body;
 
@@ -134,9 +137,10 @@ export const updateFabric = async (req, res) => {
         total_cost = $10,
         source = $11,
         notes = $12,
-        is_pinned = COALESCE($13, is_pinned),
+        image_url = $13,
+        is_pinned = COALESCE($14, is_pinned),
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $14 AND user_id = $15
+      WHERE id = $15 AND user_id = $16
       RETURNING *`,
       [
         name,
@@ -151,6 +155,7 @@ export const updateFabric = async (req, res) => {
         total_cost,
         source,
         notes,
+        image_url,
         is_pinned,
         id,
         req.user.id

@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS fabrics (
     total_cost DECIMAL(10,2),
     source VARCHAR(255),
     notes TEXT,
+    image_url TEXT,
     is_pinned BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -51,6 +52,7 @@ CREATE TABLE IF NOT EXISTS projects (
     target_date DATE,
     completed_date DATE,
     notes TEXT,
+    image_url TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -93,6 +95,8 @@ CREATE TABLE IF NOT EXISTS patterns (
     sizes TEXT,
     fabric_recommendations TEXT,
     notes TEXT,
+    thumbnail_url TEXT,
+    pdf_url TEXT,
     is_pinned BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

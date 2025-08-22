@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, Plus, Heart, Scissors, Moon, Sun, FolderOpen, User, Shield, LogOut, FileText, Sparkles, Palette, Zap } from 'lucide-react';
 import { useFabricStore, type FabricEntry } from '../store/fabricStore';
