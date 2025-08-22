@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Upload, Camera, X } from 'lucide-react';
 
 interface ImageUploadProps {
@@ -10,6 +10,11 @@ interface ImageUploadProps {
 export default function ImageUpload({ onImageSelect, currentImage, onImageRemove }: ImageUploadProps) {
   const [preview, setPreview] = useState<string | null>(currentImage || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Update preview when currentImage prop changes
+  useEffect(() => {
+    setPreview(currentImage || null);
+  }, [currentImage]);
 
   const handleFileSelect = (file: File) => {
     if (file.type.startsWith('image/')) {

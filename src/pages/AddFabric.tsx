@@ -149,15 +149,15 @@ export default function AddFabric() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   >
                     <option value="">Select type...</option>
-                    <option value="Cotton">Cotton</option>
-                    <option value="Linen">Linen</option>
-                    <option value="Silk">Silk</option>
-                    <option value="Wool">Wool</option>
-                    <option value="Polyester">Polyester</option>
-                    <option value="Denim">Denim</option>
-                    <option value="Fleece">Fleece</option>
-                    <option value="Knit">Knit</option>
-                    <option value="Other">Other</option>
+                    <option value="cotton">Cotton</option>
+                    <option value="linen">Linen</option>
+                    <option value="silk">Silk</option>
+                    <option value="wool">Wool</option>
+                    <option value="polyester">Polyester</option>
+                    <option value="denim">Denim</option>
+                    <option value="fleece">Fleece</option>
+                    <option value="knit">Knit</option>
+                    <option value="other">Other</option>
                   </select>
                 </div>
               </div>

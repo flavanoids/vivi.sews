@@ -23,20 +23,12 @@ export default function Dashboard() {
     setFilterType,
     togglePin,
     deleteFabric,
-    loadFabrics,
   } = useFabricStore();
   
   const [usageDialogFabric, setUsageDialogFabric] = useState<FabricEntry | null>(null);
   const [deleteDialogFabric, setDeleteDialogFabric] = useState<FabricEntry | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showAddFabricDialog, setShowAddFabricDialog] = useState(false);
-
-  // Load fabrics when component mounts or user changes
-  useEffect(() => {
-    if (currentUser) {
-      loadFabrics();
-    }
-  }, [currentUser, loadFabrics]);
 
   // Filter fabrics
   const filteredFabrics = fabrics.filter(fabric => {
@@ -50,8 +42,8 @@ export default function Dashboard() {
     return matchesSearch && matchesFilter;
   });
 
-  const pinnedFabrics = filteredFabrics.filter(f => f.is_pinned);
-  const otherFabrics = filteredFabrics.filter(f => !f.is_pinned);
+  const pinnedFabrics = filteredFabrics.filter(f => f.isPinned);
+  const otherFabrics = filteredFabrics.filter(f => !f.isPinned);
 
   const handleDeleteConfirm = () => {
     if (deleteDialogFabric) {
@@ -226,14 +218,15 @@ export default function Dashboard() {
               className="flex-shrink-0 px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             >
               <option value="">{t('dashboard.allTypes')}</option>
-              <option value="Cotton">{t('fabrics.fabricTypes.cotton')}</option>
-              <option value="Linen">{t('fabrics.fabricTypes.linen')}</option>
-              <option value="Silk">{t('fabrics.fabricTypes.silk')}</option>
-              <option value="Wool">{t('fabrics.fabricTypes.wool')}</option>
-              <option value="Polyester">{t('fabrics.fabricTypes.polyester')}</option>
-              <option value="Denim">{t('fabrics.fabricTypes.denim')}</option>
-              <option value="Fleece">{t('fabrics.fabricTypes.fleece')}</option>
-              <option value="Knit">{t('fabrics.fabricTypes.knit')}</option>
+              <option value="cotton">{t('fabrics.fabricTypes.cotton')}</option>
+              <option value="linen">{t('fabrics.fabricTypes.linen')}</option>
+              <option value="silk">{t('fabrics.fabricTypes.silk')}</option>
+              <option value="wool">{t('fabrics.fabricTypes.wool')}</option>
+              <option value="polyester">{t('fabrics.fabricTypes.polyester')}</option>
+              <option value="denim">{t('fabrics.fabricTypes.denim')}</option>
+              <option value="fleece">{t('fabrics.fabricTypes.fleece')}</option>
+              <option value="knit">{t('fabrics.fabricTypes.knit')}</option>
+              <option value="other">Other</option>
             </select>
           </div>
         </div>
@@ -320,6 +313,11 @@ interface FabricCardProps {
 }
 
 function FabricCard({ fabric, onTogglePin, onUseFabric, onEdit, onDelete }: FabricCardProps) {
+  // Helper function to capitalize fabric type for display
+  const capitalizeFabricType = (type: string) => {
+    return type.charAt(0).toUpperCase() + type.slice(1);
+  };
+  
   return (
     <div className="group bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-xl hover:scale-[1.02] transition-all duration-300 hover:border-purple-300/50 dark:hover:border-purple-600/50">
       <div className="aspect-square bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 relative overflow-hidden">
@@ -360,7 +358,7 @@ function FabricCard({ fabric, onTogglePin, onUseFabric, onEdit, onDelete }: Fabr
         {/* Fabric type badge */}
         <div className="absolute bottom-3 left-3">
           <span className="px-2 py-1 text-xs font-medium bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full text-gray-700 dark:text-gray-300 border border-gray-200/50 dark:border-gray-700/50">
-            {fabric.type}
+            {capitalizeFabricType(fabric.type)}
           </span>
         </div>
       </div>
@@ -369,7 +367,7 @@ function FabricCard({ fabric, onTogglePin, onUseFabric, onEdit, onDelete }: Fabr
         <h3 className="font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
           {fabric.name}
         </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{fabric.type} • {fabric.color}</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{capitalizeFabricType(fabric.type)} • {fabric.color}</p>
         
         <div className="flex justify-between items-center text-sm mb-3">
           <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1">

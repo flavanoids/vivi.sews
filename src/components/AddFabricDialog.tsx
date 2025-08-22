@@ -161,6 +161,7 @@ export default function AddFabricDialog({ isOpen, onClose }: AddFabricDialogProp
                   <option value="denim">{t('fabrics.fabricTypes.denim')}</option>
                   <option value="fleece">{t('fabrics.fabricTypes.fleece')}</option>
                   <option value="knit">{t('fabrics.fabricTypes.knit')}</option>
+                  <option value="other">Other</option>
                 </select>
               </div>
 
