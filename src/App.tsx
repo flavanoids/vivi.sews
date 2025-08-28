@@ -50,8 +50,13 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, initializeAuth } = useAuthStore();
   const { isDarkMode } = useFabricStore();
+  
+  // Initialize authentication on app startup
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
   
   // Apply dark mode to document element
   useEffect(() => {

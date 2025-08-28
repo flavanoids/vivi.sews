@@ -361,5 +361,25 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
       isUserLocked: (user) => {
         return !!(user.lockedUntil && new Date(user.lockedUntil) > new Date());
       },
+
+      initializeAuth: async () => {
+        const token = (apiService as any).getAuthToken();
+        if (token) {
+          try {
+            const user = await (apiService as any).getProfile();
+            set({
+              currentUser: user,
+              isAuthenticated: true,
+            });
+          } catch (error) {
+            // Token is invalid, clear it
+            (apiService as any).setAuthToken(null);
+            set({
+              currentUser: null,
+              isAuthenticated: false,
+            });
+          }
+        }
+      },
     })
   )
