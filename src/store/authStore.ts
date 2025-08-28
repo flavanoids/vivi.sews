@@ -74,6 +74,9 @@ interface AuthStore {
   getUserById: (userId: string) => User | undefined;
   isAdmin: () => boolean;
   isUserLocked: (user: User) => boolean;
+  
+  // Initialization
+  initializeAuth: () => Promise<void>;
 }
 
 // Initialize with empty users array - users will be created through signup
