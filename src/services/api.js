@@ -1,8 +1,12 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = 'http://192.168.50.154:3001/api';
+
+console.log('API_BASE_URL:', API_BASE_URL);
+console.log('import.meta.env.VITE_API_URL:', import.meta.env.VITE_API_URL);
 
 class ApiService {
   constructor() {
     this.baseURL = API_BASE_URL;
+    console.log('ApiService initialized with baseURL:', this.baseURL);
   }
 
   // Get auth token from localStorage
@@ -109,10 +113,13 @@ class ApiService {
   }
 
   async createFabric(fabricData) {
-    return this.request('/fabrics', {
+    console.log('API service: Creating fabric with data:', fabricData);
+    const response = await this.request('/fabrics', {
       method: 'POST',
       body: JSON.stringify(fabricData),
     });
+    console.log('API service: Fabric creation response:', response);
+    return response;
   }
 
   async updateFabric(id, updates) {

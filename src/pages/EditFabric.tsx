@@ -38,9 +38,9 @@ export default function EditFabric() {
         name: fabric.name,
         type: fabric.type,
         color: fabric.color,
-        yardsTotal: fabric.yardsTotal,
-        yardsLeft: fabric.yardsLeft,
-        cost: fabric.cost,
+        yardsTotal: fabric.total_yards,
+        yardsLeft: fabric.total_yards,
+        cost: fabric.total_cost || 0,
         notes: fabric.notes || '',
       });
     } else {
@@ -70,14 +70,20 @@ export default function EditFabric() {
     e.preventDefault();
     if (!fabric) return;
     
-    let imageUrl: string | undefined = fabric.imageUrl;
+    let imageUrl: string | undefined = fabric.image_url;
     if (selectedImage) {
       imageUrl = URL.createObjectURL(selectedImage);
     }
     
     updateFabric(fabric.id, {
-      ...formData,
-      imageUrl,
+      name: formData.name,
+      type: formData.type,
+      color: formData.color,
+      total_yards: formData.yardsTotal,
+      cost_per_yard: formData.cost > 0 ? formData.cost / formData.yardsTotal : undefined,
+      total_cost: formData.cost,
+      notes: formData.notes,
+      image_url: imageUrl,
     });
     navigate('/');
   };
@@ -109,7 +115,7 @@ export default function EditFabric() {
                 </label>
                 <ImageUpload 
                   onImageSelect={handleImageSelect} 
-                  currentImage={fabric.imageUrl}
+                  currentImage={fabric.image_url}
                   onImageRemove={handleImageRemove}
                 />
               </div>

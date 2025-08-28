@@ -54,7 +54,8 @@ export default function ImageUpload({
           onImageUpload(uploadResponse.url);
         } catch (error) {
           console.error('Upload failed:', error);
-          alert('Failed to upload image. Please try again.');
+          // Don't show alert, just log the error and continue
+          // The form can still be submitted without the image
         } finally {
           setIsUploading(false);
         }

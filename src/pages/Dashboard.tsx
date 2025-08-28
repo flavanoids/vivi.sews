@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, Plus, Heart, Scissors, Moon, Sun, FolderOpen, User, Shield, LogOut, FileText, Sparkles, Palette, Zap } from 'lucide-react';
 import { useFabricStore, type FabricEntry } from '../store/fabricStore';
@@ -23,12 +23,18 @@ export default function Dashboard() {
     setFilterType,
     togglePin,
     deleteFabric,
+    loadFabrics,
   } = useFabricStore();
   
   const [usageDialogFabric, setUsageDialogFabric] = useState<FabricEntry | null>(null);
   const [deleteDialogFabric, setDeleteDialogFabric] = useState<FabricEntry | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showAddFabricDialog, setShowAddFabricDialog] = useState(false);
+
+  // Load fabrics on component mount
+  useEffect(() => {
+    loadFabrics();
+  }, [loadFabrics]);
 
   // Filter fabrics
   const filteredFabrics = fabrics.filter(fabric => {
@@ -42,8 +48,8 @@ export default function Dashboard() {
     return matchesSearch && matchesFilter;
   });
 
-  const pinnedFabrics = filteredFabrics.filter(f => f.isPinned);
-  const otherFabrics = filteredFabrics.filter(f => !f.isPinned);
+  const pinnedFabrics = filteredFabrics.filter(f => f.is_pinned);
+  const otherFabrics = filteredFabrics.filter(f => !f.is_pinned);
 
   const handleDeleteConfirm = () => {
     if (deleteDialogFabric) {
@@ -321,9 +327,9 @@ function FabricCard({ fabric, onTogglePin, onUseFabric, onEdit, onDelete }: Fabr
   return (
     <div className="group bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl shadow-sm border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-xl hover:scale-[1.02] transition-all duration-300 hover:border-purple-300/50 dark:hover:border-purple-600/50">
       <div className="aspect-square bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 relative overflow-hidden">
-        {fabric.imageUrl ? (
+        {fabric.image_url ? (
           <img 
-            src={fabric.imageUrl} 
+            src={fabric.image_url} 
             alt={fabric.name} 
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
           />
@@ -343,12 +349,12 @@ function FabricCard({ fabric, onTogglePin, onUseFabric, onEdit, onDelete }: Fabr
           <button
             onClick={() => onTogglePin(fabric.id)}
             className={`p-2 rounded-full backdrop-blur-sm ${
-              fabric.isPinned 
+              fabric.is_pinned 
                 ? 'bg-red-100/90 dark:bg-red-900/50 text-red-500 hover:bg-red-200/90 dark:hover:bg-red-900/70' 
                 : 'bg-white/90 dark:bg-gray-800/90 text-gray-400 hover:bg-white dark:hover:bg-gray-800 hover:text-red-500'
             } transition-all duration-200 hover:scale-110`}
           >
-            <Heart className={`w-4 h-4 ${fabric.isPinned ? 'fill-current' : ''}`} />
+            <Heart className={`w-4 h-4 ${fabric.is_pinned ? 'fill-current' : ''}`} />
           </button>
           <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full hover:bg-white dark:hover:bg-gray-800 transition-all duration-200 hover:scale-110">
             <FabricCardMenu onEdit={onEdit} onDelete={onDelete} />
@@ -372,9 +378,9 @@ function FabricCard({ fabric, onTogglePin, onUseFabric, onEdit, onDelete }: Fabr
         <div className="flex justify-between items-center text-sm mb-3">
           <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1">
             <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-            {fabric.yardsLeft} yards left
+            {fabric.total_yards} yards left
           </span>
-          <span className="font-semibold text-green-600 dark:text-green-400">${fabric.cost.toFixed(2)}</span>
+          <span className="font-semibold text-green-600 dark:text-green-400">${(fabric.total_cost || 0).toFixed(2)}</span>
         </div>
         
         <button

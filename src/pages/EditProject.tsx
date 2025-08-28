@@ -416,7 +416,7 @@ export default function EditProject() {
                   <option value="">Choose a fabric...</option>
                   {fabrics.map(fabric => (
                     <option key={fabric.id} value={fabric.id}>
-                      {fabric.name} ({fabric.type}, {fabric.color}) - {fabric.yardsLeft} yards left
+                      {fabric.name} ({fabric.type}, {fabric.color}) - {fabric.total_yards} yards left
                     </option>
                   ))}
                 </select>

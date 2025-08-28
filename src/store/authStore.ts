@@ -366,15 +366,19 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
       },
 
       initializeAuth: async () => {
+        console.log('Initializing auth...');
         const token = (apiService as any).getAuthToken();
+        console.log('Auth token:', token ? 'exists' : 'not found');
         if (token) {
           try {
             const user = await (apiService as any).getProfile();
+            console.log('User profile loaded:', user);
             set({
               currentUser: user,
               isAuthenticated: true,
             });
           } catch (error) {
+            console.error('Error loading user profile:', error);
             // Token is invalid, clear it
             (apiService as any).setAuthToken(null);
             set({
@@ -382,6 +386,8 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
               isAuthenticated: false,
             });
           }
+        } else {
+          console.log('No auth token found');
         }
       },
     })

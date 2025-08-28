@@ -57,7 +57,7 @@ export default function DeleteConfirmDialog({ fabric, project, pattern, isOpen, 
             <>
               <h4 className="font-medium text-gray-900 dark:text-white">{fabric.name}</h4>
               <p className="text-sm text-gray-600 dark:text-gray-400">{fabric.type} • {fabric.color}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">{fabric.yardsLeft} yards remaining</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{fabric.total_yards} yards remaining</p>
             </>
           ) : null}
         </div>

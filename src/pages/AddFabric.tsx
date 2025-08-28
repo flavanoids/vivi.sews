@@ -10,7 +10,6 @@ interface FabricFormData {
   type: string;
   color: string;
   yardsTotal: number;
-  yardsLeft: number;
   cost: number;
   notes: string;
 }
@@ -44,7 +43,6 @@ export default function AddFabric() {
     type: '',
     color: '',
     yardsTotal: 0,
-    yardsLeft: 0,
     cost: 0,
     notes: '',
   });
@@ -55,7 +53,7 @@ export default function AddFabric() {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'yardsTotal' || name === 'yardsLeft' || name === 'cost' 
+      [name]: name === 'yardsTotal' || name === 'cost' 
         ? parseFloat(value) || 0 
         : value
     }));
@@ -73,25 +71,53 @@ export default function AddFabric() {
     e.preventDefault();
     setIsLoading(true);
     
+    // Validate required fields
+    if (!formData.name.trim()) {
+      alert('Fabric name is required');
+      setIsLoading(false);
+      return;
+    }
+    
+    if (!formData.type) {
+      alert('Fabric type is required');
+      setIsLoading(false);
+      return;
+    }
+    
+    if (formData.yardsTotal <= 0) {
+      alert('Total yards must be greater than 0');
+      setIsLoading(false);
+      return;
+    }
+    
+    const fabricData = {
+      name: formData.name,
+      type: formData.type,
+      color: formData.color,
+      total_yards: formData.yardsTotal,
+      cost_per_yard: formData.cost > 0 ? formData.cost / formData.yardsTotal : undefined,
+      total_cost: formData.cost,
+      notes: formData.notes,
+      image_url: imageUrl || undefined,
+      is_pinned: false,
+    };
+    
+    console.log('Submitting fabric with data:', fabricData);
+    
     try {
-      const result = await addFabric({
-        name: formData.name,
-        type: formData.type,
-        color: formData.color,
-        yardsTotal: formData.yardsTotal,
-        yardsLeft: formData.yardsTotal,
-        cost: formData.cost,
-        notes: formData.notes,
-        imageUrl: imageUrl || undefined,
-        isPinned: false,
-      });
+      const result = await addFabric(fabricData);
+      
+      console.log('Add fabric result:', result);
       
       if (result.success) {
+        console.log('Fabric created successfully, navigating to dashboard');
         navigate('/');
       } else {
+        console.error('Fabric creation failed:', result.message);
         alert(result.message || 'Error adding fabric. Please try again.');
       }
     } catch (error) {
+      console.error('Error adding fabric:', error);
       alert('Error adding fabric. Please try again.');
     } finally {
       setIsLoading(false);
@@ -188,10 +214,10 @@ export default function AddFabric() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label htmlFor="yardsTotal" className="block text-sm font-medium text-gray-700 mb-2">
-                    Total Yards
+                    Total Yards *
                   </label>
                   <input
                     type="number"
@@ -199,23 +225,8 @@ export default function AddFabric() {
                     name="yardsTotal"
                     step="0.25"
                     min="0"
+                    required
                     value={formData.yardsTotal}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="yardsLeft" className="block text-sm font-medium text-gray-700 mb-2">
-                    Yards Left
-                  </label>
-                  <input
-                    type="number"
-                    id="yardsLeft"
-                    name="yardsLeft"
-                    step="0.25"
-                    min="0"
-                    value={formData.yardsLeft}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   />

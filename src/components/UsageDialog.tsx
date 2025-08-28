@@ -46,7 +46,7 @@ export default function UsageDialog({ fabric, isOpen, onClose }: UsageDialogProp
         <div className="mb-4 p-3 bg-gray-50 rounded-lg">
           <h4 className="font-medium text-gray-900">{fabric.name}</h4>
           <p className="text-sm text-gray-600">{fabric.type} • {fabric.color}</p>
-          <p className="text-sm text-gray-600">Available: {fabric.yardsLeft} yards</p>
+          <p className="text-sm text-gray-600">Available: {fabric.total_yards} yards</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -59,16 +59,16 @@ export default function UsageDialog({ fabric, isOpen, onClose }: UsageDialogProp
               id="yardsUsed"
               step="0.25"
               min="0.25"
-              max={fabric.yardsLeft}
+              max={fabric.total_yards}
               value={yardsUsed || ''}
               onChange={(e) => setYardsUsed(parseFloat(e.target.value) || 0)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               placeholder="0.00"
               required
             />
-            {yardsUsed > fabric.yardsLeft && (
+            {yardsUsed > fabric.total_yards && (
               <p className="text-sm text-red-600 mt-1">
-                Cannot use more yards than available ({fabric.yardsLeft} yards)
+                Cannot use more yards than available ({fabric.total_yards} yards)
               </p>
             )}
           </div>
@@ -105,7 +105,7 @@ export default function UsageDialog({ fabric, isOpen, onClose }: UsageDialogProp
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
-              disabled={!yardsUsed || !projectName.trim() || yardsUsed > fabric.yardsLeft}
+              disabled={!yardsUsed || !projectName.trim() || yardsUsed > fabric.total_yards}
               className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors"
             >
               Record Usage

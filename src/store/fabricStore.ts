@@ -18,15 +18,15 @@ export interface FabricEntry {
   name: string;
   type: string;
   color: string;
-  yardsTotal: number;
-  yardsLeft: number;
-  cost: number;
+  total_yards: number;
+  cost_per_yard?: number;
+  total_cost?: number;
   notes?: string;
-  isPinned: boolean;
-  imageUrl?: string;
-  createdAt: string;
-  updatedAt: string;
-  userId: string;
+  is_pinned: boolean;
+  image_url?: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
 }
 
 export interface ProjectMaterial {
@@ -94,11 +94,12 @@ interface FabricStore {
   isDarkMode: boolean;
   
   // Fabric methods
-  addFabric: (fabric: Omit<FabricEntry, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => Promise<{ success: boolean; message?: string }>;
+  addFabric: (fabric: Omit<FabricEntry, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => Promise<{ success: boolean; message?: string }>;
   updateFabric: (id: string, updates: Partial<FabricEntry>) => Promise<{ success: boolean; message?: string }>;
   deleteFabric: (id: string) => Promise<{ success: boolean; message?: string }>;
   togglePin: (id: string) => Promise<{ success: boolean; message?: string }>;
   recordUsage: (fabricId: string, yardsUsed: number, projectName: string, notes?: string) => Promise<{ success: boolean; message?: string }>;
+  loadFabrics: () => Promise<{ success: boolean; message?: string }>;
   
   // Project methods
   addProject: (project: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => void;
@@ -289,12 +290,15 @@ export const useFabricStore = create<FabricStore>()((set, get) => ({
       // Fabric methods
       addFabric: async (fabricData) => {
         try {
+          console.log('Fabric store: Creating fabric with data:', fabricData);
           const response = await apiService.createFabric(fabricData);
+          console.log('Fabric store: API response:', response);
           set((state) => ({
             fabrics: [...state.fabrics, response.fabric]
           }));
           return { success: true, message: response.message };
         } catch (error) {
+          console.error('Fabric store: Error creating fabric:', error);
           const errorMessage = error instanceof Error ? error.message : 'Failed to add fabric';
           return { success: false, message: errorMessage };
         }
@@ -596,7 +600,7 @@ export const useFabricStore = create<FabricStore>()((set, get) => ({
       
       // User-specific data methods
       getUserFabrics: (userId: string) => {
-        return get().fabrics.filter(fabric => fabric.userId === userId);
+        return get().fabrics.filter(fabric => fabric.user_id === userId);
       },
       
       getUserProjects: (userId: string) => {

@@ -64,9 +64,15 @@ export default function AddFabricDialog({ isOpen, onClose }: AddFabricDialogProp
     
     try {
       addFabric({
-        ...formData,
-        isPinned: false,
-        imageUrl,
+        name: formData.name,
+        type: formData.type,
+        color: formData.color,
+        total_yards: formData.yardsTotal,
+        cost_per_yard: formData.cost > 0 ? formData.cost / formData.yardsTotal : undefined,
+        total_cost: formData.cost,
+        notes: formData.notes,
+        image_url: imageUrl,
+        is_pinned: false,
       });
       
       // Reset form

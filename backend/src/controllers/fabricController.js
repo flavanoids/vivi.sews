@@ -36,6 +36,9 @@ export const getFabric = async (req, res) => {
 
 export const createFabric = async (req, res) => {
   try {
+    console.log('Create fabric request body:', req.body);
+    console.log('Create fabric request user:', req.user);
+    
     const {
       name,
       type,
@@ -53,9 +56,31 @@ export const createFabric = async (req, res) => {
       is_pinned
     } = req.body;
 
+    console.log('Extracted fields:', { name, type, total_yards, color, notes, image_url });
+
     if (!name || !total_yards) {
+      console.log('Validation failed: missing name or total_yards');
       return res.status(400).json({ message: 'Name and total yards are required' });
     }
+
+    console.log('Inserting fabric with values:', [
+      `fabric-${Date.now()}`,
+      req.user.id,
+      name,
+      type || null,
+      fiber_content || null,
+      weight || null,
+      color || null,
+      pattern || null,
+      width || null,
+      total_yards,
+      cost_per_yard || null,
+      total_cost || null,
+      source || null,
+      notes || null,
+      image_url || null,
+      is_pinned || false
+    ]);
 
     const result = await pool.query(
       `INSERT INTO fabrics (
@@ -83,12 +108,14 @@ export const createFabric = async (req, res) => {
       ]
     );
 
+    console.log('Fabric created successfully:', result.rows[0]);
     res.status(201).json({
       message: 'Fabric created successfully',
       fabric: result.rows[0]
     });
   } catch (error) {
     console.error('Create fabric error:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
