@@ -577,16 +577,11 @@ export const useFabricStore = create<FabricStore>()((set, get) => ({
       
       // Load data methods
       loadFabrics: async () => {
-        console.log('loadFabrics: Starting to load fabrics...');
         try {
-          console.log('loadFabrics: Calling apiService.getFabrics()...');
           const response = await apiService.getFabrics();
-          console.log('loadFabrics: API response received:', response);
           set({ fabrics: response.fabrics });
-          console.log('loadFabrics: Fabrics loaded successfully, count:', response.fabrics.length);
           return { success: true };
         } catch (error) {
-          console.error('loadFabrics: Error loading fabrics:', error);
           const errorMessage = error instanceof Error ? error.message : 'Failed to load fabrics';
           return { success: false, message: errorMessage };
         }
