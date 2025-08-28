@@ -30,11 +30,97 @@ export default function Dashboard() {
   const [deleteDialogFabric, setDeleteDialogFabric] = useState<FabricEntry | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showAddFabricDialog, setShowAddFabricDialog] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Load fabrics on component mount
   useEffect(() => {
-    loadFabrics();
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const result = await loadFabrics();
+        if (!result.success) {
+          setError(result.message || 'Failed to load fabrics');
+        }
+      } catch (err) {
+        setError('An error occurred while loading fabrics');
+        console.error('Dashboard error:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadData();
   }, [loadFabrics]);
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className={`min-h-screen transition-colors ${isDarkMode ? 'dark' : ''}`}>
+        <div className={`min-h-screen ${isDarkMode ? 'bg-gradient-to-br from-gray-900 to-gray-800' : 'bg-gradient-to-br from-blue-50 to-indigo-100'} bg-white/30 dark:bg-black/30 backdrop-blur-sm p-2 sm:p-4 relative z-10`}>
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-center min-h-screen">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                <p className="text-gray-600 dark:text-gray-400">Loading your fabric collection...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className={`min-h-screen transition-colors ${isDarkMode ? 'dark' : ''}`}>
+        <div className={`min-h-screen ${isDarkMode ? 'bg-gradient-to-br from-gray-900 to-gray-800' : 'bg-gradient-to-br from-blue-50 to-indigo-100'} bg-white/30 dark:bg-black/30 backdrop-blur-sm p-2 sm:p-4 relative z-10`}>
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-center min-h-screen">
+              <div className="text-center">
+                <div className="text-6xl mb-4">⚠️</div>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Something went wrong</h2>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
+                <button 
+                  onClick={() => window.location.reload()} 
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if user is authenticated
+  if (!currentUser) {
+    return (
+      <div className={`min-h-screen transition-colors ${isDarkMode ? 'dark' : ''}`}>
+        <div className={`min-h-screen ${isDarkMode ? 'bg-gradient-to-br from-gray-900 to-gray-800' : 'bg-gradient-to-br from-blue-50 to-indigo-100'} bg-white/30 dark:bg-black/30 backdrop-blur-sm p-2 sm:p-4 relative z-10`}>
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-center min-h-screen">
+              <div className="text-center">
+                <div className="text-6xl mb-4">🔐</div>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Authentication Required</h2>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">Please log in to access your fabric collection.</p>
+                <button 
+                  onClick={() => navigate('/login')} 
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  Go to Login
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Filter fabrics
   const filteredFabrics = fabrics.filter(fabric => {
