@@ -38,7 +38,7 @@ services:
       - DB_USER=vivisews
       - DB_PASSWORD=vivisews_prod_password
       - JWT_SECRET=your-super-secret-jwt-key-change-in-production
-      - FRONTEND_URL=http://localhost:8473
+      - FRONTEND_URL=http://192.168.50.154:8473
     networks:
       - vivisews-network
     depends_on:
@@ -56,14 +56,14 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: http://127.0.0.1:3001/api
+        VITE_API_URL: http://192.168.50.154:3001/api
     container_name: vivisews-frontend
     ports:
       - "8473:8473"
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - VITE_API_URL=http://127.0.0.1:3001/api
+      - VITE_API_URL=http://192.168.50.154:3001/api
     networks:
       - vivisews-network
     volumes:
