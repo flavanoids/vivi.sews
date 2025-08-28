@@ -11,6 +11,7 @@ import LanguageSelector from '../components/LanguageSelector';
 import AddFabricDialog from '../components/AddFabricDialog';
 
 export default function Dashboard() {
+  console.log('Dashboard: Component rendering...');
   const navigate = useNavigate();
   const { currentUser, logout } = useAuthStore();
   const { isDarkMode, toggleDarkMode } = useFabricStore();
@@ -33,7 +34,12 @@ export default function Dashboard() {
 
   // Load fabrics on component mount
   useEffect(() => {
-    loadFabrics();
+    console.log('Dashboard: Component mounted, calling loadFabrics...');
+    loadFabrics().then(result => {
+      console.log('Dashboard: loadFabrics result:', result);
+    }).catch(error => {
+      console.error('Dashboard: Error in loadFabrics:', error);
+    });
   }, [loadFabrics]);
 
   // Filter fabrics
