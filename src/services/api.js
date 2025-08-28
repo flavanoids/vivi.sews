@@ -105,7 +105,11 @@ class ApiService {
 
   // Fabric endpoints
   async getFabrics() {
-    return this.request('/fabrics');
+    console.log('API getFabrics: Starting request...');
+    console.log('API getFabrics: Auth token:', this.getAuthToken() ? 'exists' : 'not found');
+    const response = await this.request('/fabrics');
+    console.log('API getFabrics: Response received:', response);
+    return response;
   }
 
   async getFabric(id) {
